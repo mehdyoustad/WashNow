@@ -2,6 +2,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTheme } from '../src/theme';
 import {
   Alert,
   Modal,
@@ -92,6 +93,7 @@ const STATUS_COLORS: Record<Booking['status'], { bg: string; text: string; label
 
 export default function History() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
   const [ratingModal, setRatingModal] = useState<{ visible: boolean; bookingId: string | null }>({
     visible: false,
@@ -190,7 +192,7 @@ export default function History() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -205,7 +207,7 @@ export default function History() {
         {bookings.map((booking) => {
           const status = STATUS_COLORS[booking.status];
           return (
-            <View key={booking.id} style={styles.card}>
+            <View key={booking.id} style={[styles.card, { backgroundColor: colors.card }]}>
               {/* Top row */}
               <View style={styles.cardTop}>
                 <View style={styles.washerAvatar}>
@@ -221,16 +223,16 @@ export default function History() {
               </View>
 
               {/* Divider */}
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
               {/* Details */}
               <View style={styles.detailRow}>
                 <Text style={styles.detailIcon}>📅</Text>
-                <Text style={styles.detailText}>{booking.date}</Text>
+                <Text style={[styles.detailText, { color: colors.textSub }]}>{booking.date}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailIcon}>📍</Text>
-                <Text style={styles.detailText}>{booking.address}</Text>
+                <Text style={[styles.detailText, { color: colors.textSub }]}>{booking.address}</Text>
               </View>
 
               {/* Footer */}
@@ -350,7 +352,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#f5f5f5', marginBottom: 12 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   detailIcon: { fontSize: 14 },
-  detailText: { fontSize: 13, color: '#666' },
+  detailText: { fontSize: 13, color: '#666' }, // overridden by colors.textSub inline
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',

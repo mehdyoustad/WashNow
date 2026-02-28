@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../src/theme';
 
 export default function Profile() {
   const router = useRouter();
+  const { colors } = useTheme();
   const menuSections = [
     { title: 'Véhicules', items: [{ icon: '🚗', label: 'Mes véhicules', badge: '2', green: false }] },
     { title: 'Compte', items: [
@@ -20,7 +22,7 @@ export default function Profile() {
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={styles.header}>
         <View style={styles.avatar}><Text style={{ fontSize: 32, color: 'white' }}>M</Text></View>
         <Text style={styles.name}>Mehdy</Text>
@@ -36,7 +38,7 @@ export default function Profile() {
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.loyaltyCard}>
+        <TouchableOpacity style={styles.loyaltyCard} onPress={() => router.push('/rewards' as any)}>
           <View style={styles.loyaltyTop}>
             <Text style={styles.loyaltyTitle}>Programme fidélité 🏆</Text>
             <Text style={styles.loyaltyPoints}>650 pts</Text>
@@ -46,33 +48,33 @@ export default function Profile() {
             <Text style={styles.barLabel}>650 pts</Text>
             <Text style={styles.barLabel}>1000 pts = -10€</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {menuSections.map((section, si) => (
           <View key={si} style={styles.menuSection}>
-            <Text style={styles.menuTitle}>{section.title}</Text>
-            <View style={styles.menuCard}>
+            <Text style={[styles.menuTitle, { color: colors.textSub }]}>{section.title}</Text>
+            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
               {section.items.map((item: any, ii) => (
-  <TouchableOpacity key={ii} style={[styles.menuItem, ii > 0 && styles.menuItemBorder]} onPress={item.onPress}>
-                  <View style={styles.menuIcon}><Text style={{ fontSize: 18 }}>{item.icon}</Text></View>
-                  <Text style={styles.menuLabel}>{item.label}</Text>
+  <TouchableOpacity key={ii} style={[styles.menuItem, ii > 0 && [styles.menuItemBorder, { borderTopColor: colors.border }]]} onPress={item.onPress}>
+                  <View style={[styles.menuIcon, { backgroundColor: colors.cardAlt }]}><Text style={{ fontSize: 18 }}>{item.icon}</Text></View>
+                  <Text style={[styles.menuLabel, { color: colors.text }]}>{item.label}</Text>
                   {item.badge && <View style={styles.badge}><Text style={styles.badgeText}>{item.badge}</Text></View>}
                   {item.green && <View style={styles.greenBadge}><Text style={styles.greenBadgeText}>+10€</Text></View>}
-                  <Text style={styles.menuArrow}>›</Text>
+                  <Text style={[styles.menuArrow, { color: colors.textSub }]}>›</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
         ))}
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={() => router.push('/login')}>
+        <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: colors.card }]} onPress={() => router.push('/login')}>
           <View style={styles.menuIcon}><Text style={{ fontSize: 18 }}>🚪</Text></View>
           <Text style={styles.logoutText}>Se déconnecter</Text>
         </TouchableOpacity>
         <View style={{ height: 30 }} />
       </ScrollView>
 
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: colors.navBg, borderTopColor: colors.navBorder }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => router.push('/home')}>
           <Text style={styles.navIcon}>🏠</Text><Text style={styles.navLabel}>Accueil</Text>
         </TouchableOpacity>

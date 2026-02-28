@@ -28,6 +28,9 @@ export default function RootLayout() {
         <Stack.Screen name="referral" />
         <Stack.Screen name="edit-profile" />
         <Stack.Screen name="payment-methods" />
+        <Stack.Screen name="rewards" />
+        <Stack.Screen name="chat" />
+        <Stack.Screen name="photos" />
       </Stack>
     </StripeProvider>
   );

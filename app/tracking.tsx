@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../src/theme';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { PulseIndicator } from '../src/components';
 import { notifyWasherEnRoute, notifyWashingDone } from '../src/notifications';
@@ -17,6 +18,7 @@ const clientLocation = { latitude: 48.9350, longitude: 2.4500 };
 
 export default function Tracking() {
   const router = useRouter();
+  const { colors } = useTheme();
   const notifiedRef = useRef(false);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function Tracking() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Vraie carte Google Maps */}
       <View style={styles.mapContainer}>
         <MapView
@@ -75,7 +77,7 @@ export default function Tracking() {
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.washerCard}>
+        <View style={[styles.washerCard, { backgroundColor: colors.cardAlt }]}>
           <View style={styles.washerRow}>
             <View style={styles.avatar}>
               <Text style={{ fontSize: 28 }}>👨</Text>
@@ -94,13 +96,13 @@ export default function Tracking() {
             <TouchableOpacity style={styles.contactBtn}>
               <Text style={styles.contactText}>📞 Appeler</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.contactBtn}>
+            <TouchableOpacity style={styles.contactBtn} onPress={() => router.push('/chat' as any)}>
               <Text style={styles.contactText}>💬 Message</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.progressCard}>
+        <View style={[styles.progressCard, { backgroundColor: colors.cardAlt }]}>
           {steps.map((s, i) => (
             <View key={i}>
               <View style={styles.progRow}>
@@ -119,15 +121,24 @@ export default function Tracking() {
           ))}
         </View>
 
-        <View style={styles.infoBar}>
-          <Text style={styles.infoText}>
-            Lavage complet · Peugeot 308 · <Text style={{ fontWeight: '700', color: '#0a0a0a' }}>49€</Text>
+        <View style={[styles.infoBar, { backgroundColor: colors.cardAlt }]}>
+          <Text style={[styles.infoText, { color: colors.textSub }]}>
+            Lavage complet · Peugeot 308 · <Text style={{ fontWeight: '700', color: '#1a6bff' }}>49€</Text>
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={[styles.photosBtn, { backgroundColor: colors.card }]}
+          onPress={() => router.push('/photos' as any)}
+        >
+          <Text style={styles.photosBtnIcon}>📸</Text>
+          <Text style={[styles.photosBtnText, { color: colors.text }]}>Photos avant / après</Text>
+          <Text style={[styles.photosBtnArrow, { color: colors.textSub }]}>›</Text>
+        </TouchableOpacity>
         <View style={{ height: 30 }} />
       </ScrollView>
 
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: colors.navBg, borderTopColor: colors.navBorder }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => router.push('/home')}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navLabel}>Accueil</Text>
@@ -178,8 +189,12 @@ const styles = StyleSheet.create({
   progTime: { fontSize: 12, color: '#999', marginTop: 2 },
   progLine: { width: 2, height: 20, backgroundColor: '#e8e8e8', marginLeft: 15, marginVertical: 4 },
   progLineDone: { backgroundColor: '#00c853' },
-  infoBar: { backgroundColor: '#f5f5f5', borderRadius: 16, padding: 16, alignItems: 'center' },
+  infoBar: { backgroundColor: '#f5f5f5', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 12 },
   infoText: { fontSize: 14, color: '#555' },
+  photosBtn: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, padding: 16, marginBottom: 12 },
+  photosBtnIcon: { fontSize: 22 },
+  photosBtnText: { flex: 1, fontSize: 15, fontWeight: '600' },
+  photosBtnArrow: { fontSize: 22 },
   bottomNav: { flexDirection: 'row', backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#e8e8e8', paddingBottom: 24, paddingTop: 10 },
   navItem: { flex: 1, alignItems: 'center', gap: 4 },
   navIcon: { fontSize: 22 },
