@@ -6,9 +6,10 @@ export default function Profile() {
   const menuSections = [
     { title: 'Véhicules', items: [{ icon: '🚗', label: 'Mes véhicules', badge: '2', green: false }] },
     { title: 'Compte', items: [
+      { icon: '✏️', label: 'Mon compte', badge: '', green: false, onPress: () => router.push('/edit-profile' as any) },
       { icon: '📦', label: 'Abonnement', badge: '', green: false },
       { icon: '📋', label: 'Historique des lavages', badge: '', green: false, onPress: () => router.push('/history' as any) },
-      { icon: '💳', label: 'Paiement', badge: '', green: false },
+      { icon: '💳', label: 'Paiement', badge: '', green: false, onPress: () => router.push('/payment-methods' as any) },
       { icon: '🎁', label: 'Parrainer un ami', badge: '', green: true, onPress: () => router.push('/referral' as any) },
       { icon: '🚗', label: 'Mes véhicules', badge: '', green: false, onPress: () => router.push('/vehicles') },
     ]},

@@ -18,13 +18,24 @@ type Booking = {
   date: string;
   address: string;
   price: string;
-  status: 'terminé' | 'annulé' | 'en cours';
+  status: 'terminé' | 'annulé' | 'en cours' | 'confirmé' | 'en attente';
   washer: string;
   washerInitial: string;
   rating: number | null;
 };
 
 const MOCK_BOOKINGS: Booking[] = [
+  {
+    id: '0',
+    service: 'Lavage premium',
+    date: 'Sam. 8 mars 2025, 11h00',
+    address: '12 rue de Paris, Drancy',
+    price: '59€',
+    status: 'confirmé',
+    washer: 'Karim B.',
+    washerInitial: 'K',
+    rating: null,
+  },
   {
     id: '1',
     service: 'Lavage complet',
@@ -75,6 +86,8 @@ const STATUS_COLORS: Record<Booking['status'], { bg: string; text: string; label
   terminé: { bg: '#e8faf0', text: '#00c853', label: 'Terminé' },
   annulé: { bg: '#ffeaea', text: '#cc3333', label: 'Annulé' },
   'en cours': { bg: '#e8f0ff', text: '#1a6bff', label: 'En cours' },
+  confirmé: { bg: '#fff8e6', text: '#cc8800', label: 'Confirmé' },
+  'en attente': { bg: '#f5f5f5', text: '#999', label: 'En attente' },
 };
 
 export default function History() {
@@ -89,6 +102,30 @@ export default function History() {
   const openRatingModal = (id: string) => {
     setHoverRating(0);
     setRatingModal({ visible: true, bookingId: id });
+  };
+
+  const cancelBooking = (booking: Booking) => {
+    Alert.alert(
+      'Annuler la réservation',
+      `Annuler le ${booking.service} du ${booking.date} ?\n\nVous serez remboursé sous 3 à 5 jours ouvrés.`,
+      [
+        { text: 'Retour', style: 'cancel' },
+        {
+          text: 'Annuler la réservation',
+          style: 'destructive',
+          onPress: async () => {
+            setBookings(prev =>
+              prev.map(b => b.id === booking.id ? { ...b, status: 'annulé' } : b)
+            );
+            // TODO: await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', booking.id)
+            Alert.alert(
+              'Réservation annulée',
+              `Remboursement de ${booking.price} en cours. Vous recevrez un email de confirmation.`
+            );
+          },
+        },
+      ]
+    );
   };
 
   const submitRating = (stars: number) => {
@@ -200,6 +237,11 @@ export default function History() {
               <View style={styles.cardFooter}>
                 <Text style={styles.price}>{booking.price}</Text>
                 <View style={styles.footerActions}>
+                  {(booking.status === 'confirmé' || booking.status === 'en attente') && (
+                    <TouchableOpacity style={styles.cancelBtn} onPress={() => cancelBooking(booking)}>
+                      <Text style={styles.cancelBtnText}>Annuler</Text>
+                    </TouchableOpacity>
+                  )}
                   {booking.status === 'terminé' && (
                     <>
                       {booking.rating ? (
@@ -336,6 +378,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pdfBtnText: { fontSize: 16 },
+  cancelBtn: {
+    backgroundColor: '#fff0f0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  cancelBtnText: { color: '#cc3333', fontWeight: '700', fontSize: 13 },
   ratingDisplay: { flexDirection: 'row', gap: 2 },
   star: { fontSize: 18, color: '#e0e0e0' },
   starFilled: { color: '#FFB800' },

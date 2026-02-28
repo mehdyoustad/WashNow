@@ -26,6 +26,8 @@ export default function RootLayout() {
         <Stack.Screen name="vehicles" />
         <Stack.Screen name="history" />
         <Stack.Screen name="referral" />
+        <Stack.Screen name="edit-profile" />
+        <Stack.Screen name="payment-methods" />
       </Stack>
     </StripeProvider>
   );

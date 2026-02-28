@@ -1,8 +1,10 @@
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../src/supabase';
+
+const GOOGLE_API_KEY = 'AIzaSyA_9xvfaad4vBdv-twfVOLdZ_yfGsOmv1g';
 
 const times = ['08h00', '09h00', '10h00', '11h00', '14h00', '15h00', '16h00'];
 
@@ -16,14 +18,30 @@ export default function Booking() {
   const [selectedPayment, setSelectedPayment] = useState('card');
   const [address, setAddress] = useState<string>('Recherche en cours...');
   const [loadingLocation, setLoadingLocation] = useState(false);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+  const [addressInput, setAddressInput] = useState('');
+  const [placeSuggestions, setPlaceSuggestions] = useState<any[]>([]);
+  const [loadingPlaces, setLoadingPlaces] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { fetchServices(); }, []);
+  useEffect(() => { fetchServices(); fetchVehicles(); }, []);
 
   const fetchServices = async () => {
     const { data } = await supabase.from('services').select('*').eq('active', true).order('created_at');
     setServices(data || []);
     setLoadingServices(false);
+  };
+
+  const fetchVehicles = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('vehicles').select('*').eq('user_id', user.id).order('is_default', { ascending: false });
+    setVehicles(data || []);
+    if (data && data.length > 0) {
+      const def = data.find((v: any) => v.is_default) ?? data[0];
+      setSelectedVehicle(def.id);
+    }
   };
 
   const getLocation = async () => {
@@ -32,7 +50,6 @@ export default function Booking() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') { setAddress('Permission refusée'); return; }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      setCoords({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
       const geocode = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
       if (geocode.length > 0) {
         const g = geocode[0];
@@ -43,6 +60,27 @@ export default function Booking() {
   };
 
   useEffect(() => { if (step === 2) getLocation(); }, [step]);
+
+  const fetchPlaces = (input: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (input.length < 3) { setPlaceSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setLoadingPlaces(true);
+      try {
+        const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${GOOGLE_API_KEY}&language=fr&components=country:fr`;
+        const res = await fetch(url);
+        const json = await res.json();
+        setPlaceSuggestions(json.predictions ?? []);
+      } catch { setPlaceSuggestions([]); }
+      finally { setLoadingPlaces(false); }
+    }, 350);
+  };
+
+  const selectPlace = (prediction: any) => {
+    setAddress(prediction.description);
+    setAddressInput(prediction.description);
+    setPlaceSuggestions([]);
+  };
 
   const selectedServiceData = services.find(s => s.id === selectedService);
 
@@ -70,7 +108,7 @@ export default function Booking() {
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* STEP 1 — Services depuis Supabase */}
+        {/* STEP 1 — Services + Véhicule */}
         {step === 1 && (
           <View>
             <Text style={styles.sectionTitle}>Sélectionner un service</Text>
@@ -93,28 +131,109 @@ export default function Booking() {
                 </TouchableOpacity>
               ))
             )}
+
+            {/* Sélection véhicule */}
+            <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Votre véhicule</Text>
+            {vehicles.length === 0 ? (
+              <TouchableOpacity style={styles.addVehicleCard} onPress={() => router.push('/vehicles')}>
+                <Text style={styles.addVehicleIcon}>🚗</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.addVehicleTitle}>Aucun véhicule enregistré</Text>
+                  <Text style={styles.addVehicleSub}>Ajoutez-en un pour continuer</Text>
+                </View>
+                <Text style={styles.addVehicleArrow}>›</Text>
+              </TouchableOpacity>
+            ) : (
+              vehicles.map((v: any) => (
+                <TouchableOpacity
+                  key={v.id}
+                  style={[styles.vehicleCard, selectedVehicle === v.id && styles.vehicleCardSelected]}
+                  onPress={() => setSelectedVehicle(v.id)}
+                >
+                  <View style={styles.vehicleCardIcon}>
+                    <Text style={{ fontSize: 22 }}>🚗</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.vehicleCardName}>{v.brand} {v.model}</Text>
+                    <Text style={styles.vehicleCardDetail}>{v.color} · {v.type}{v.plate ? ` · ${v.plate}` : ''}</Text>
+                  </View>
+                  <View style={[styles.radio, selectedVehicle === v.id && styles.radioSelected]}>
+                    {selectedVehicle === v.id && <View style={styles.radioDot} />}
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
         )}
 
-        {/* STEP 2 */}
+        {/* STEP 2 — Adresse avec autocomplétion Google Places */}
         {step === 2 && (
           <View>
-            <Text style={styles.sectionTitle}>Votre position</Text>
-            <View style={styles.mapPreview}>
-              {loadingLocation ? <ActivityIndicator size="large" color="#1a6bff" /> : <Text style={{ fontSize: 48 }}>🗺️</Text>}
+            <Text style={styles.sectionTitle}>Votre adresse</Text>
+
+            {/* Champ de recherche */}
+            <View style={styles.placeInputWrap}>
+              <Text style={styles.placeSearchIcon}>🔍</Text>
+              <TextInput
+                style={styles.placeInput}
+                placeholder="Ex: 12 rue de la Paix, Paris"
+                value={addressInput}
+                onChangeText={t => { setAddressInput(t); fetchPlaces(t); }}
+                placeholderTextColor="#999"
+                autoFocus={addressInput === ''}
+              />
+              {loadingPlaces && <ActivityIndicator size="small" color="#1a6bff" />}
             </View>
-            <View style={styles.locationBox}>
-              <Text style={{ fontSize: 24 }}>📍</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.locLabel}>{loadingLocation ? 'Détection en cours...' : 'Adresse détectée'}</Text>
-                <Text style={styles.locAddr}>{loadingLocation ? '...' : address}</Text>
+
+            {/* Suggestions */}
+            {placeSuggestions.length > 0 && (
+              <View style={styles.suggestionsBox}>
+                {placeSuggestions.map((p, i) => (
+                  <TouchableOpacity
+                    key={p.place_id}
+                    style={[styles.suggestionItem, i > 0 && styles.suggestionBorder]}
+                    onPress={() => selectPlace(p)}
+                  >
+                    <Text style={styles.suggestionIcon}>📍</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.suggestionMain} numberOfLines={1}>
+                        {p.structured_formatting?.main_text ?? p.description}
+                      </Text>
+                      <Text style={styles.suggestionSub} numberOfLines={1}>
+                        {p.structured_formatting?.secondary_text ?? ''}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <TouchableOpacity onPress={getLocation}>
-                <Text style={styles.modifyText}>{loadingLocation ? '⏳' : '🔄'}</Text>
-              </TouchableOpacity>
+            )}
+
+            {/* Séparateur */}
+            <View style={styles.orRow}>
+              <View style={styles.orLine} />
+              <Text style={styles.orText}>ou</Text>
+              <View style={styles.orLine} />
             </View>
-            {!loadingLocation && coords && (
-              <View style={styles.zoneBanner}><Text style={styles.zoneText}>✅ Zone couverte par WashNow</Text></View>
+
+            {/* Détection GPS */}
+            <TouchableOpacity style={styles.gpsBtn} onPress={() => { getLocation(); setPlaceSuggestions([]); }}>
+              <Text style={styles.gpsIcon}>{loadingLocation ? '⏳' : '📡'}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.gpsBtnTitle}>Utiliser ma position GPS</Text>
+                {address && address !== 'Recherche en cours...' && !loadingLocation && (
+                  <Text style={styles.gpsBtnAddr} numberOfLines={1}>{address}</Text>
+                )}
+              </View>
+              {loadingLocation
+                ? <ActivityIndicator size="small" color="#1a6bff" />
+                : <Text style={styles.gpsArrow}>›</Text>}
+            </TouchableOpacity>
+
+            {/* Adresse sélectionnée */}
+            {address && address !== 'Recherche en cours...' && !loadingLocation && (
+              <View style={styles.zoneBanner}>
+                <Text style={styles.zoneText}>✅ Zone couverte par WashNow</Text>
+              </View>
             )}
           </View>
         )}
@@ -239,4 +358,31 @@ const styles = StyleSheet.create({
   footer: { padding: 20, paddingBottom: 34, borderTopWidth: 1, borderTopColor: '#f5f5f5' },
   btnNext: { backgroundColor: '#1a6bff', borderRadius: 50, padding: 18, alignItems: 'center' },
   btnNextText: { color: 'white', fontSize: 16, fontWeight: '700' },
+  addVehicleCard: { flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 2, borderColor: '#e8e8e8', borderRadius: 16, padding: 16, marginBottom: 12, borderStyle: 'dashed' },
+  addVehicleIcon: { fontSize: 28 },
+  addVehicleTitle: { fontSize: 14, fontWeight: '700', color: '#0a0a0a' },
+  addVehicleSub: { fontSize: 12, color: '#999', marginTop: 2 },
+  addVehicleArrow: { fontSize: 22, color: '#999' },
+  vehicleCard: { flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 2, borderColor: '#e8e8e8', borderRadius: 16, padding: 16, marginBottom: 10 },
+  vehicleCardSelected: { borderColor: '#1a6bff', backgroundColor: '#e8f0ff' },
+  vehicleCardIcon: { width: 44, height: 44, backgroundColor: '#f5f5f5', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  vehicleCardName: { fontSize: 15, fontWeight: '700', color: '#0a0a0a' },
+  vehicleCardDetail: { fontSize: 12, color: '#999', marginTop: 2 },
+  placeInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 8, gap: 8 },
+  placeSearchIcon: { fontSize: 18 },
+  placeInput: { flex: 1, fontSize: 15, color: '#0a0a0a', paddingVertical: 14 },
+  suggestionsBox: { backgroundColor: 'white', borderRadius: 14, marginBottom: 8, borderWidth: 1, borderColor: '#e8e8e8', overflow: 'hidden' },
+  suggestionItem: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14 },
+  suggestionBorder: { borderTopWidth: 1, borderTopColor: '#f5f5f5' },
+  suggestionIcon: { fontSize: 16 },
+  suggestionMain: { fontSize: 14, fontWeight: '600', color: '#0a0a0a' },
+  suggestionSub: { fontSize: 12, color: '#999', marginTop: 1 },
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 14 },
+  orLine: { flex: 1, height: 1, backgroundColor: '#e8e8e8' },
+  orText: { fontSize: 13, color: '#999' },
+  gpsBtn: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#f0f4ff', borderRadius: 14, padding: 16, marginBottom: 14 },
+  gpsIcon: { fontSize: 22 },
+  gpsBtnTitle: { fontSize: 14, fontWeight: '700', color: '#1a6bff' },
+  gpsBtnAddr: { fontSize: 12, color: '#555', marginTop: 2 },
+  gpsArrow: { fontSize: 22, color: '#1a6bff' },
 });
