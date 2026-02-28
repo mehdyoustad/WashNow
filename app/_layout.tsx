@@ -1,8 +1,14 @@
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { registerForPushNotifications } from '../src/notifications';
 
 export default function RootLayout() {
+  useEffect(() => {
+    registerForPushNotifications();
+  }, []);
+
   return (
     <StripeProvider publishableKey="pk_test_51T5SSA6QAoOMqjsf8NohyWePnvHDoQiBEKZHwdomkMKbdVOPDO0nYX99gVod0WpmTMyj7A3v0RxeA1SfWteebFTV00a8f7nnik">
       <StatusBar style="light" />
@@ -16,6 +22,10 @@ export default function RootLayout() {
         <Stack.Screen name="profile" />
         <Stack.Screen name="subscription" />
         <Stack.Screen name="payment-sheet" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="vehicles" />
+        <Stack.Screen name="history" />
+        <Stack.Screen name="referral" />
       </Stack>
     </StripeProvider>
   );

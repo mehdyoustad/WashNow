@@ -1,8 +1,17 @@
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { scheduleBookingReminder } from '../src/notifications';
 
 export default function Confirmation() {
   const router = useRouter();
+
+  useEffect(() => {
+    // Programmer un rappel 5 secondes après confirmation (démo)
+    // En production : calculer le vrai delta jusqu'au RDV
+    scheduleBookingReminder('Lavage complet', 'Dim. 2 mars, 10h00', 5);
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.iconWrap}>

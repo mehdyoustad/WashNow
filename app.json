@@ -44,6 +44,15 @@
           "merchantIdentifier": "merchant.com.washnow",
           "enableGooglePay": true
         }
+      ],
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#1a6bff",
+          "defaultChannel": "washnow"
+        }
       ]
     ],
     "experiments": {

@@ -1,7 +1,9 @@
 import { useRouter } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { PulseIndicator } from '../src/components';
+import { notifyWasherEnRoute, notifyWashingDone } from '../src/notifications';
 
 const steps = [
   { icon: '✓', label: 'Réservation confirmée', time: '09:32', done: true },
@@ -15,6 +17,16 @@ const clientLocation = { latitude: 48.9350, longitude: 2.4500 };
 
 export default function Tracking() {
   const router = useRouter();
+  const notifiedRef = useRef(false);
+
+  useEffect(() => {
+    if (notifiedRef.current) return;
+    notifiedRef.current = true;
+    // Simule les notifications de statut (en prod : déclenché par webhook Supabase)
+    notifyWasherEnRoute('Karim B.');
+    const t = setTimeout(() => notifyWashingDone('Lavage complet'), 30000);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <View style={styles.container}>

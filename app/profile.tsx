@@ -7,9 +7,10 @@ export default function Profile() {
     { title: 'Véhicules', items: [{ icon: '🚗', label: 'Mes véhicules', badge: '2', green: false }] },
     { title: 'Compte', items: [
       { icon: '📦', label: 'Abonnement', badge: '', green: false },
-      { icon: '📋', label: 'Historique des lavages', badge: '', green: false },
+      { icon: '📋', label: 'Historique des lavages', badge: '', green: false, onPress: () => router.push('/history' as any) },
       { icon: '💳', label: 'Paiement', badge: '', green: false },
-      { icon: '🎁', label: 'Parrainer un ami', badge: '', green: true },
+      { icon: '🎁', label: 'Parrainer un ami', badge: '', green: true, onPress: () => router.push('/referral' as any) },
+      { icon: '🚗', label: 'Mes véhicules', badge: '', green: false, onPress: () => router.push('/vehicles') },
     ]},
     { title: 'Préférences', items: [
       { icon: '🔔', label: 'Notifications', badge: '', green: false },
@@ -50,8 +51,8 @@ export default function Profile() {
           <View key={si} style={styles.menuSection}>
             <Text style={styles.menuTitle}>{section.title}</Text>
             <View style={styles.menuCard}>
-              {section.items.map((item, ii) => (
-                <TouchableOpacity key={ii} style={[styles.menuItem, ii > 0 && styles.menuItemBorder]}>
+              {section.items.map((item: any, ii) => (
+  <TouchableOpacity key={ii} style={[styles.menuItem, ii > 0 && styles.menuItemBorder]} onPress={item.onPress}>
                   <View style={styles.menuIcon}><Text style={{ fontSize: 18 }}>{item.icon}</Text></View>
                   <Text style={styles.menuLabel}>{item.label}</Text>
                   {item.badge && <View style={styles.badge}><Text style={styles.badgeText}>{item.badge}</Text></View>}
