@@ -28,6 +28,11 @@ export default function Home() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [weather, setWeather] = useState<Weather | null>(null);
 
+  // Mock : dernière voiture + date dernier lavage
+  const lastWashDays = 32;
+  const carName = 'Peugeot 308';
+  const showReminder = lastWashDays >= 30;
+
   const headerHeight = scrollY.interpolate({ inputRange: [0, 80], outputRange: [160, 100], extrapolate: 'clamp' });
   const headerPadding = scrollY.interpolate({ inputRange: [0, 80], outputRange: [24, 14], extrapolate: 'clamp' });
   const titleSize = scrollY.interpolate({ inputRange: [0, 80], outputRange: [24, 18], extrapolate: 'clamp' });
@@ -87,16 +92,38 @@ export default function Home() {
               <View style={{ flex: 1 }}>
                 <Text style={[styles.weatherTemp, { color: colors.text }]}>{weather.temp}°C — {weather.description}</Text>
                 {weather.isRainy ? (
-                  <Text style={styles.weatherWarning}>⚠️ Lavage déconseillé aujourd'hui</Text>
+                  <>
+                    <Text style={styles.weatherWarning}>⚠️ Lavage déconseillé aujourd'hui</Text>
+                    <Text style={styles.weatherSuggest}>💡 Service intérieur recommandé</Text>
+                  </>
                 ) : (
-                  <Text style={styles.weatherGood}>✅ Conditions idéales pour un lavage !</Text>
+                  <>
+                    <Text style={styles.weatherGood}>✅ Conditions idéales pour un lavage !</Text>
+                    <Text style={styles.weatherSuggest}>💡 Lavage complet recommandé</Text>
+                  </>
                 )}
               </View>
             </View>
           </AnimatedCard>
         )}
 
-        <AnimatedCard index={weather ? 1 : 0}>
+        {/* Rappel voiture non lavée */}
+        {showReminder && (
+          <AnimatedCard index={weather ? 1 : 0}>
+            <TouchableOpacity style={styles.reminderCard} onPress={() => router.push('/booking')}>
+              <Text style={styles.reminderIcon}>🚗</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.reminderTitle}>Il est temps de laver votre voiture !</Text>
+                <Text style={styles.reminderSub}>Votre {carName} n'a pas été lavée depuis {lastWashDays} jours</Text>
+              </View>
+              <View style={styles.reminderBtn}>
+                <Text style={styles.reminderBtnText}>Réserver</Text>
+              </View>
+            </TouchableOpacity>
+          </AnimatedCard>
+        )}
+
+        <AnimatedCard index={weather ? (showReminder ? 2 : 1) : (showReminder ? 1 : 0)}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Réserver un lavage</Text>
         </AnimatedCard>
 
@@ -198,6 +225,13 @@ const styles = StyleSheet.create({
   weatherTemp: { fontSize: 14, fontWeight: '600', textTransform: 'capitalize' },
   weatherWarning: { fontSize: 13, color: '#cc8800', fontWeight: '600', marginTop: 3 },
   weatherGood: { fontSize: 13, color: '#00c853', fontWeight: '600', marginTop: 3 },
+  weatherSuggest: { fontSize: 12, color: '#555', marginTop: 2 },
+  reminderCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff8e6', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#FFB800' },
+  reminderIcon: { fontSize: 28 },
+  reminderTitle: { fontSize: 14, fontWeight: '700', color: '#0a0a0a' },
+  reminderSub: { fontSize: 12, color: '#cc8800', marginTop: 3 },
+  reminderBtn: { backgroundColor: '#1a6bff', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 50 },
+  reminderBtnText: { color: 'white', fontSize: 12, fontWeight: '700' },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 14, marginTop: 4 },
   featuredCard: { backgroundColor: '#1a6bff', borderRadius: 16, padding: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   featuredTitle: { color: 'white', fontSize: 18, fontWeight: '700' },

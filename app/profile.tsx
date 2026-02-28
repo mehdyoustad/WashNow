@@ -17,6 +17,7 @@ export default function Profile() {
     ]},
     { title: 'Préférences', items: [
       { icon: '🔔', label: 'Notifications', badge: '', green: false },
+      { icon: '🔲', label: 'Widgets écran d\'accueil', badge: '', green: false, onPress: () => router.push('/widget-preview' as any) },
       { icon: '❓', label: 'Aide & Support', badge: '', green: false },
     ]},
   ];
@@ -38,6 +39,26 @@ export default function Profile() {
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Éco-impact total */}
+        <View style={styles.ecoCard}>
+          <View style={styles.ecoHeader}>
+            <Text style={styles.ecoTitle}>🌱 Mon impact écologique</Text>
+            <View style={styles.ecoBadge}><Text style={styles.ecoBadgeText}>🏅 Éco-guerrier</Text></View>
+          </View>
+          <View style={styles.ecoRow}>
+            {[
+              { num: '1740L', label: '💧 eau économisée' },
+              { num: '6kg', label: '♻️ CO₂ évité' },
+              { num: '12', label: '🚿 lavages eco' },
+            ].map((s, i) => (
+              <View key={i} style={[styles.ecoStat, i > 0 && styles.ecoStatBorder]}>
+                <Text style={styles.ecoStatNum}>{s.num}</Text>
+                <Text style={styles.ecoStatLabel}>{s.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
         <TouchableOpacity style={styles.loyaltyCard} onPress={() => router.push('/rewards' as any)}>
           <View style={styles.loyaltyTop}>
             <Text style={styles.loyaltyTitle}>Programme fidélité 🏆</Text>
@@ -124,6 +145,16 @@ const styles = StyleSheet.create({
   badgeText: { color: 'white', fontSize: 11, fontWeight: '700' },
   greenBadge: { backgroundColor: '#e8faf0', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
   greenBadgeText: { color: '#00c853', fontSize: 11, fontWeight: '700' },
+  ecoCard: { backgroundColor: '#e8faf0', borderRadius: 16, padding: 18, marginBottom: 20 },
+  ecoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  ecoTitle: { fontSize: 14, fontWeight: '700', color: '#0a0a0a' },
+  ecoBadge: { backgroundColor: '#00c853', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  ecoBadgeText: { color: 'white', fontSize: 11, fontWeight: '700' },
+  ecoRow: { flexDirection: 'row' },
+  ecoStat: { flex: 1, alignItems: 'center' },
+  ecoStatBorder: { borderLeftWidth: 1, borderLeftColor: '#c8e6c9' },
+  ecoStatNum: { fontSize: 18, fontWeight: '700', color: '#00c853' },
+  ecoStatLabel: { fontSize: 10, color: '#555', marginTop: 3, textAlign: 'center' },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: 'white', borderRadius: 16, padding: 16 },
   logoutText: { fontSize: 15, fontWeight: '500', color: '#cc3333' },
   bottomNav: { flexDirection: 'row', backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#e8e8e8', paddingBottom: 24, paddingTop: 10 },

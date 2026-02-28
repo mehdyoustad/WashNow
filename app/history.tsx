@@ -23,9 +23,24 @@ type Booking = {
   washer: string;
   washerInitial: string;
   rating: number | null;
+  recurring?: boolean;
+  recurrenceType?: 'weekly' | 'biweekly' | 'monthly';
 };
 
 const MOCK_BOOKINGS: Booking[] = [
+  {
+    id: '-1',
+    service: 'Lavage complet',
+    date: 'Sam. 15 mars 2025, 10h00',
+    address: '12 rue de Paris, Drancy',
+    price: '35€',
+    status: 'confirmé',
+    washer: 'Karim B.',
+    washerInitial: 'K',
+    rating: null,
+    recurring: true,
+    recurrenceType: 'weekly',
+  },
   {
     id: '0',
     service: 'Lavage premium',
@@ -217,8 +232,15 @@ export default function History() {
                   <Text style={styles.serviceName}>{booking.service}</Text>
                   <Text style={styles.washerName}>{booking.washer}</Text>
                 </View>
-                <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
-                  <Text style={[styles.statusText, { color: status.text }]}>{status.label}</Text>
+                <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                  <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+                    <Text style={[styles.statusText, { color: status.text }]}>{status.label}</Text>
+                  </View>
+                  {booking.recurring && (
+                    <View style={styles.recurringBadge}>
+                      <Text style={styles.recurringBadgeText}>🔄 Récurrent</Text>
+                    </View>
+                  )}
                 </View>
               </View>
 
@@ -349,6 +371,8 @@ const styles = StyleSheet.create({
   washerName: { fontSize: 13, color: '#999', marginTop: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   statusText: { fontSize: 12, fontWeight: '700' },
+  recurringBadge: { backgroundColor: '#e8f0ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  recurringBadgeText: { fontSize: 11, fontWeight: '700', color: '#1a6bff' },
   divider: { height: 1, backgroundColor: '#f5f5f5', marginBottom: 12 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   detailIcon: { fontSize: 14 },

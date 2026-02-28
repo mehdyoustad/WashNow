@@ -24,6 +24,7 @@ export default function Booking() {
   const [placeSuggestions, setPlaceSuggestions] = useState<any[]>([]);
   const [loadingPlaces, setLoadingPlaces] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [recurrenceType, setRecurrenceType] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
 
   useEffect(() => { fetchServices(); fetchVehicles(); }, []);
 
@@ -84,9 +85,46 @@ export default function Booking() {
 
   const selectedServiceData = services.find(s => s.id === selectedService);
 
-  const next = () => {
-    if (step < 4) setStep(step + 1);
-    else router.push('/payment-sheet');
+  const createRecurringBookings = async (baseBookingId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || recurrenceType === 'none') return;
+    const daysMap = { weekly: 7, biweekly: 14, monthly: 30 };
+    const interval = daysMap[recurrenceType];
+    const bookings = [1, 2, 3].map(i => ({
+      user_id: user.id,
+      service_id: selectedService,
+      vehicle_id: selectedVehicle,
+      address,
+      time_slot: selectedTime,
+      status: 'planifié',
+      recurring: true,
+      parent_booking_id: baseBookingId,
+      scheduled_at: new Date(Date.now() + i * interval * 24 * 60 * 60 * 1000).toISOString(),
+    }));
+    await supabase.from('bookings').insert(bookings);
+  };
+
+  const next = async () => {
+    if (step < 4) { setStep(step + 1); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const price = recurrenceType !== 'none'
+        ? Math.round((selectedServiceData?.price ?? 0) * 0.9)
+        : (selectedServiceData?.price ?? 0);
+      const { data } = await supabase.from('bookings').insert({
+        user_id: user.id,
+        service_id: selectedService,
+        vehicle_id: selectedVehicle,
+        address,
+        time_slot: selectedTime,
+        status: 'en attente',
+        recurring: recurrenceType !== 'none',
+        recurrence_type: recurrenceType,
+        price,
+      }).select().single();
+      if (data) await createRecurringBookings(data.id);
+    }
+    router.push('/payment-sheet');
   };
 
   return (
@@ -257,6 +295,35 @@ export default function Booking() {
               </View>
               <Text style={styles.urgentPrice}>+15€</Text>
             </TouchableOpacity>
+
+            {/* Récurrence */}
+            <View style={styles.recurrenceBox}>
+              <Text style={styles.recurrenceTitle}>🔄 Répéter ce lavage</Text>
+              <Text style={styles.recurrenceSub}>Économisez 10% sur les réservations récurrentes</Text>
+              <View style={styles.recurrenceOptions}>
+                {([
+                  { key: 'none', label: 'Une fois' },
+                  { key: 'weekly', label: 'Chaque semaine' },
+                  { key: 'biweekly', label: 'Toutes les 2 sem.' },
+                  { key: 'monthly', label: 'Chaque mois' },
+                ] as const).map(opt => (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={[styles.recurrenceChip, recurrenceType === opt.key && styles.recurrenceChipSelected]}
+                    onPress={() => setRecurrenceType(opt.key)}
+                  >
+                    <Text style={[styles.recurrenceChipText, recurrenceType === opt.key && { color: '#1a6bff' }]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {recurrenceType !== 'none' && (
+                <View style={styles.recurrenceSavings}>
+                  <Text style={styles.recurrenceSavingsText}>✅ -10% appliqué · Prochaines réservations créées automatiquement</Text>
+                </View>
+              )}
+            </View>
           </View>
         )}
 
@@ -272,10 +339,27 @@ export default function Booking() {
                 <Text style={styles.summaryLabel}>Déplacement</Text>
                 <Text style={styles.summaryValue}>Gratuit</Text>
               </View>
+              {recurrenceType !== 'none' && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Réduction récurrence</Text>
+                  <Text style={[styles.summaryValue, { color: '#00c853' }]}>-10%</Text>
+                </View>
+              )}
               <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#e8e8e8', marginTop: 4, paddingTop: 12 }]}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: '#0a0a0a' }}>Total</Text>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#1a6bff' }}>{selectedServiceData?.price}€</Text>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#1a6bff' }}>
+                  {recurrenceType !== 'none'
+                    ? `${Math.round((selectedServiceData?.price ?? 0) * 0.9)}€`
+                    : `${selectedServiceData?.price}€`}
+                </Text>
               </View>
+              {recurrenceType !== 'none' && (
+                <View style={{ backgroundColor: '#e8f0ff', borderRadius: 10, padding: 10, marginTop: 6 }}>
+                  <Text style={{ fontSize: 12, color: '#1a6bff', fontWeight: '600' }}>
+                    🔄 {recurrenceType === 'weekly' ? 'Répété chaque semaine' : recurrenceType === 'biweekly' ? 'Répété toutes les 2 semaines' : 'Répété chaque mois'}
+                  </Text>
+                </View>
+              )}
             </View>
             <Text style={styles.sectionTitle}>Moyen de paiement</Text>
             {[
@@ -368,6 +452,15 @@ const styles = StyleSheet.create({
   vehicleCardIcon: { width: 44, height: 44, backgroundColor: '#f5f5f5', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   vehicleCardName: { fontSize: 15, fontWeight: '700', color: '#0a0a0a' },
   vehicleCardDetail: { fontSize: 12, color: '#999', marginTop: 2 },
+  recurrenceBox: { marginTop: 20, backgroundColor: '#f5f5f5', borderRadius: 16, padding: 16 },
+  recurrenceTitle: { fontSize: 15, fontWeight: '700', color: '#0a0a0a', marginBottom: 4 },
+  recurrenceSub: { fontSize: 12, color: '#999', marginBottom: 12 },
+  recurrenceOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  recurrenceChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 50, borderWidth: 2, borderColor: '#e8e8e8', backgroundColor: 'white' },
+  recurrenceChipSelected: { borderColor: '#1a6bff', backgroundColor: '#e8f0ff' },
+  recurrenceChipText: { fontSize: 13, fontWeight: '600', color: '#555' },
+  recurrenceSavings: { marginTop: 12, backgroundColor: '#e8faf0', borderRadius: 10, padding: 10 },
+  recurrenceSavingsText: { fontSize: 12, color: '#00c853', fontWeight: '600' },
   placeInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 8, gap: 8 },
   placeSearchIcon: { fontSize: 18 },
   placeInput: { flex: 1, fontSize: 15, color: '#0a0a0a', paddingVertical: 14 },
