@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Cache, CACHE_KEYS } from '../src/cache';
+import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { supabase } from '../src/supabase';
 
 // ─── Marques ──────────────────────────────────────────────────────────────────
@@ -83,8 +85,10 @@ const typeIcons: Record<string, string> = {
 // ─── Composant ────────────────────────────────────────────────────────────────
 export default function Vehicles() {
   const router = useRouter();
+  const { isConnected } = useNetworkStatus();
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fromCache, setFromCache] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [brandSearch, setBrandSearch] = useState('');
@@ -95,11 +99,23 @@ export default function Vehicles() {
 
   useEffect(() => { fetchVehicles(); }, []);
 
+  useEffect(() => {
+    if (!isConnected) {
+      Cache.get<any[]>(CACHE_KEYS.VEHICLES).then(cached => {
+        if (cached) { setVehicles(cached); setFromCache(true); setLoading(false); }
+      });
+    } else {
+      setFromCache(false);
+    }
+  }, [isConnected]);
+
   const fetchVehicles = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase.from('vehicles').select('*').eq('user_id', user.id).order('created_at');
-    setVehicles(data || []);
+    const result = data || [];
+    setVehicles(result);
+    await Cache.set(CACHE_KEYS.VEHICLES, result);
     setLoading(false);
   };
 
@@ -194,6 +210,11 @@ export default function Vehicles() {
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        {fromCache && (
+          <View style={styles.cacheBanner}>
+            <Text style={styles.cacheBannerText}>📵 Données non synchronisées — mode hors ligne</Text>
+          </View>
+        )}
         {loading ? (
           <ActivityIndicator size="large" color="#1a6bff" style={{ marginTop: 60 }} />
         ) : vehicles.length === 0 ? (
@@ -454,4 +475,6 @@ const styles = StyleSheet.create({
   colorChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 50, backgroundColor: '#f5f5f5', borderWidth: 2, borderColor: 'transparent' },
   saveBtn: { backgroundColor: '#1a6bff', borderRadius: 50, padding: 18, alignItems: 'center', marginTop: 8 },
   saveBtnText: { color: 'white', fontSize: 16, fontWeight: '700' },
+  cacheBanner: { backgroundColor: '#fff8e6', borderRadius: 10, padding: 12, marginBottom: 14, borderLeftWidth: 3, borderLeftColor: '#FFB800' },
+  cacheBannerText: { fontSize: 13, color: '#cc8800', fontWeight: '600' },
 });

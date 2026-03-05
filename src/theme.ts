@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 const light = {
@@ -30,8 +32,49 @@ const dark = {
 
 export type ThemeColors = typeof light;
 
-export function useTheme(): { colors: ThemeColors; isDark: boolean } {
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
-  return { colors: isDark ? dark : light, isDark };
+const THEME_KEY = '@washnow_theme';
+
+// ─── Context ─────────────────────────────────────────────────────────────────
+
+interface ThemeCtx {
+  colors: ThemeColors;
+  isDark: boolean;
+  toggleTheme: () => void;
+}
+
+import { createElement } from 'react';
+
+const ThemeContext = createContext<ThemeCtx>({
+  colors: light,
+  isDark: false,
+  toggleTheme: () => {},
+});
+
+export function ThemeProvider({ children }: { children: any }) {
+  const systemScheme = useColorScheme();
+  const [override, setOverride] = useState<'light' | 'dark' | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_KEY).then(v => {
+      if (v === 'light' || v === 'dark') setOverride(v);
+    });
+  }, []);
+
+  const isDark = override !== null ? override === 'dark' : systemScheme === 'dark';
+
+  const toggleTheme = useCallback(async () => {
+    const next: 'light' | 'dark' = isDark ? 'light' : 'dark';
+    setOverride(next);
+    await AsyncStorage.setItem(THEME_KEY, next);
+  }, [isDark]);
+
+  return createElement(
+    ThemeContext.Provider,
+    { value: { colors: isDark ? dark : light, isDark, toggleTheme } },
+    children
+  );
+}
+
+export function useTheme(): ThemeCtx {
+  return useContext(ThemeContext);
 }

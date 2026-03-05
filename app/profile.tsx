@@ -1,10 +1,37 @@
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Cache, CACHE_KEYS } from '../src/cache';
+import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
+import { supabase } from '../src/supabase';
 import { useTheme } from '../src/theme';
+
+type ProfileData = { full_name?: string; email?: string; wash_count?: number; points?: number; rating?: number };
 
 export default function Profile() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { isConnected } = useNetworkStatus();
+  const [profile, setProfile] = useState<ProfileData>({ full_name: 'Mehdy', email: 'mehdy@email.com', wash_count: 12, points: 650, rating: 4.9 });
+  const [fromCache, setFromCache] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      if (!isConnected) {
+        const cached = await Cache.get<ProfileData>(CACHE_KEYS.PROFILE);
+        if (cached) { setProfile(cached); setFromCache(true); }
+        return;
+      }
+      setFromCache(false);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('profiles').select('full_name, email, wash_count, points, rating').eq('id', user.id).single();
+      if (data) {
+        setProfile(data);
+        await Cache.set(CACHE_KEYS.PROFILE, data);
+      }
+    })();
+  }, [isConnected]);
   const menuSections = [
     { title: 'Véhicules', items: [{ icon: '🚗', label: 'Mes véhicules', badge: '2', green: false }] },
     { title: 'Compte', items: [
@@ -16,9 +43,10 @@ export default function Profile() {
       { icon: '🚗', label: 'Mes véhicules', badge: '', green: false, onPress: () => router.push('/vehicles') },
     ]},
     { title: 'Préférences', items: [
-      { icon: '🔔', label: 'Notifications', badge: '', green: false },
+      { icon: '🔔', label: 'Notifications', badge: '', green: false, onPress: () => router.push('/notifications' as any) },
+      { icon: '⚙️', label: 'Paramètres', badge: '', green: false, onPress: () => router.push('/settings' as any) },
       { icon: '🔲', label: 'Widgets écran d\'accueil', badge: '', green: false, onPress: () => router.push('/widget-preview' as any) },
-      { icon: '❓', label: 'Aide & Support', badge: '', green: false },
+      { icon: '❓', label: 'Aide & Support', badge: '', green: false, onPress: () => router.push('/support' as any) },
     ]},
     { title: 'Légal & Compte', items: [
       { icon: '📋', label: 'CGU & Confidentialité', badge: '', green: false, onPress: () => router.push('/legal' as any) },
@@ -29,11 +57,16 @@ export default function Profile() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={styles.header}>
-        <View style={styles.avatar}><Text style={{ fontSize: 32, color: 'white' }}>M</Text></View>
-        <Text style={styles.name}>Mehdy</Text>
-        <Text style={styles.email}>mehdy@email.com</Text>
+        <View style={styles.avatar}><Text style={{ fontSize: 32, color: 'white' }}>{(profile.full_name ?? 'M')[0].toUpperCase()}</Text></View>
+        <Text style={styles.name}>{profile.full_name ?? 'Mehdy'}</Text>
+        <Text style={styles.email}>{profile.email ?? 'mehdy@email.com'}</Text>
+        {fromCache && (
+          <View style={{ backgroundColor: 'rgba(255,184,0,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, marginTop: 10 }}>
+            <Text style={{ color: '#FFB800', fontSize: 12, fontWeight: '600' }}>📵 Données non synchronisées</Text>
+          </View>
+        )}
         <View style={styles.statsRow}>
-          {[{ num: '12', label: 'Lavages' }, { num: '650', label: 'Points' }, { num: '4.9', label: 'Note' }].map((s, i) => (
+          {[{ num: String(profile.wash_count ?? 12), label: 'Lavages' }, { num: String(profile.points ?? 650), label: 'Points' }, { num: String(profile.rating ?? 4.9), label: 'Note' }].map((s, i) => (
             <View key={i} style={[styles.stat, i > 0 && styles.statBorder]}>
               <Text style={styles.statNum}>{s.num}</Text>
               <Text style={styles.statLabel}>{s.label}</Text>

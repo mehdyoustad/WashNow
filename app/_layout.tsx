@@ -9,6 +9,7 @@ import { registerForPushNotifications } from '../src/notifications';
 import { initSentry } from '../src/sentry';
 import { supabase } from '../src/supabase';
 import { track } from '../src/analytics';
+import { ThemeProvider } from '../src/theme';
 
 // Initialiser Sentry au démarrage
 initSentry();
@@ -76,6 +77,7 @@ export default function RootLayout() {
   };
 
   return (
+    <ThemeProvider>
     <StripeProvider publishableKey="pk_test_51T5SSA6QAoOMqjsf8NohyWePnvHDoQiBEKZHwdomkMKbdVOPDO0nYX99gVod0WpmTMyj7A3v0RxeA1SfWteebFTV00a8f7nnik">
       <View style={{ flex: 1 }}>
         <StatusBar style="light" />
@@ -103,10 +105,14 @@ export default function RootLayout() {
           <Stack.Screen name="delete-account" />
           <Stack.Screen name="maintenance" />
           <Stack.Screen name="welcome" />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="support" />
         </Stack>
         {showHelp && <HelpButton />}
         <OfflineBanner />
       </View>
     </StripeProvider>
+    </ThemeProvider>
   );
 }

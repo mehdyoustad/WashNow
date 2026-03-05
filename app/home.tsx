@@ -69,8 +69,16 @@ export default function Home() {
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Header animé */}
       <Animated.View style={[styles.header, { height: headerHeight, paddingHorizontal: 24, paddingTop: 50, paddingBottom: headerPadding }]}>
-        <Text style={styles.greeting}>Bonjour Mehdy 👋</Text>
-        <Animated.Text style={[styles.question, { fontSize: titleSize }]}>Que faisons-nous ?</Animated.Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.greeting}>Bonjour Mehdy 👋</Text>
+            <Animated.Text style={[styles.question, { fontSize: titleSize }]}>Que faisons-nous ?</Animated.Text>
+          </View>
+          <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/notifications' as any)}>
+            <Text style={{ fontSize: 20 }}>🔔</Text>
+            <View style={styles.bellDot} />
+          </TouchableOpacity>
+        </View>
         <Animated.View style={{ opacity: locationOpacity }}>
           <TouchableOpacity style={styles.locationPill}>
             <Text style={styles.locationText}>📍 Drancy, Île-de-France  ▾</Text>
@@ -215,6 +223,10 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { backgroundColor: '#0a0a0a', justifyContent: 'flex-end' },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerLeft: { flex: 1 },
+  bellBtn: { width: 40, height: 40, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20, justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  bellDot: { position: 'absolute', top: 7, right: 7, width: 8, height: 8, backgroundColor: '#ff4444', borderRadius: 4, borderWidth: 1.5, borderColor: '#0a0a0a' },
   greeting: { color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 2 },
   question: { color: 'white', fontWeight: '700' },
   locationPill: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 50, alignSelf: 'flex-start', marginTop: 10 },
