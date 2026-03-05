@@ -1,8 +1,10 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTheme } from '../src/theme';
+import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
+import { Cache, CACHE_KEYS } from '../src/cache';
 import {
   Alert,
   Modal,
@@ -12,6 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+const PAGE_SIZE = 4;
 
 type Booking = {
   id: string;
@@ -109,19 +113,43 @@ const STATUS_COLORS: Record<Booking['status'], { bg: string; text: string; label
 export default function History() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { isConnected } = useNetworkStatus();
   const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
+  const [page, setPage] = useState(1);
+  const [fromCache, setFromCache] = useState(false);
   const [ratingModal, setRatingModal] = useState<{ visible: boolean; bookingId: string | null }>({
     visible: false,
     bookingId: null,
   });
   const [hoverRating, setHoverRating] = useState(0);
 
-  const openRatingModal = (id: string) => {
+  // Cache : sauvegarder + charger
+  useEffect(() => {
+    Cache.set(CACHE_KEYS.HISTORY, MOCK_BOOKINGS);
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected) {
+      Cache.get<Booking[]>(CACHE_KEYS.HISTORY).then(cached => {
+        if (cached) { setBookings(cached); setFromCache(true); }
+      });
+    } else {
+      setFromCache(false);
+    }
+  }, [isConnected]);
+
+  // Pagination
+  const visibleBookings = useMemo(() => bookings.slice(0, page * PAGE_SIZE), [bookings, page]);
+  const hasMore = bookings.length > page * PAGE_SIZE;
+
+  const loadMore = useCallback(() => setPage(p => p + 1), []);
+
+  const openRatingModal = useCallback((id: string) => {
     setHoverRating(0);
     setRatingModal({ visible: true, bookingId: id });
-  };
+  }, []);
 
-  const cancelBooking = (booking: Booking) => {
+  const cancelBooking = useCallback((booking: Booking) => {
     Alert.alert(
       'Annuler la réservation',
       `Annuler le ${booking.service} du ${booking.date} ?\n\nVous serez remboursé sous 3 à 5 jours ouvrés.`,
@@ -143,15 +171,15 @@ export default function History() {
         },
       ]
     );
-  };
+  }, []);
 
-  const submitRating = (stars: number) => {
+  const submitRating = useCallback((stars: number) => {
     setBookings((prev) =>
       prev.map((b) => (b.id === ratingModal.bookingId ? { ...b, rating: stars } : b))
     );
     setRatingModal({ visible: false, bookingId: null });
     // TODO: await supabase.from('ratings').upsert({ booking_id: ratingModal.bookingId, stars })
-  };
+  }, [ratingModal.bookingId]);
 
   const currentBooking = bookings.find((b) => b.id === ratingModal.bookingId);
 
@@ -219,7 +247,12 @@ export default function History() {
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={{ height: 8 }} />
-        {bookings.map((booking) => {
+        {fromCache && (
+          <View style={styles.cacheBanner}>
+            <Text style={styles.cacheBannerText}>📵 Données en cache — reconnectez-vous pour actualiser</Text>
+          </View>
+        )}
+        {visibleBookings.map((booking) => {
           const status = STATUS_COLORS[booking.status];
           return (
             <View key={booking.id} style={[styles.card, { backgroundColor: colors.card }]}>
@@ -289,6 +322,11 @@ export default function History() {
             </View>
           );
         })}
+        {hasMore && (
+          <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore}>
+            <Text style={styles.loadMoreText}>Charger plus ({bookings.length - page * PAGE_SIZE} restants)</Text>
+          </TouchableOpacity>
+        )}
         <View style={{ height: 30 }} />
       </ScrollView>
 
@@ -450,4 +488,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   submitBtnText: { color: 'white', fontSize: 16, fontWeight: '700' },
+  cacheBanner: { backgroundColor: '#fff8e6', borderRadius: 10, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: '#ffe0a0' },
+  cacheBannerText: { fontSize: 12, color: '#cc8800', textAlign: 'center', fontWeight: '600' },
+  loadMoreBtn: { margin: 16, padding: 14, borderRadius: 12, borderWidth: 1.5, borderColor: '#e0e0e0', alignItems: 'center' },
+  loadMoreText: { fontSize: 14, fontWeight: '600', color: '#1a6bff' },
 });
