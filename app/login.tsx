@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { track } from '../src/analytics';
+import { CACHE_KEYS, Cache } from '../src/cache';
 import { supabase } from '../src/supabase';
 
 export default function Login() {
@@ -13,6 +15,7 @@ export default function Login() {
   const [resetModal, setResetModal] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [cguAccepted, setCguAccepted] = useState(false);
 
   const handleResetPassword = async () => {
     if (!resetEmail) { Alert.alert('Erreur', 'Entre ton adresse email'); return; }
@@ -33,14 +36,19 @@ export default function Login() {
 
   const handleAuth = async () => {
     if (!email || !password) { Alert.alert('Erreur', 'Remplis tous les champs'); return; }
+    if (!isLogin && !cguAccepted) {
+      Alert.alert('CGU requises', "Tu dois accepter les Conditions Générales d'Utilisation pour créer un compte.");
+      return;
+    }
     setLoading(true);
     try {
       if (isLogin) {
         const { error } = await Promise.race([
-        supabase.auth.signInWithPassword({ email, password }),
-        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Timeout - vérifie ta connexion internet')), 10000))
+          supabase.auth.signInWithPassword({ email, password }),
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Timeout - vérifie ta connexion internet')), 10000)),
         ]);
         if (error) throw error;
+        await track('user_login', { method: 'email' });
         router.push('/home');
       } else {
         if (!name) { Alert.alert('Erreur', 'Entre ton prénom'); setLoading(false); return; }
@@ -48,8 +56,11 @@ export default function Login() {
         if (error) throw error;
         if (data.user) {
           await supabase.from('profiles').insert({ id: data.user.id, full_name: name, email });
+          await Cache.set(CACHE_KEYS.CGU_ACCEPTED, { accepted: true, date: new Date().toISOString() });
+          await track('user_signup', { method: 'email' });
+          await track('cgu_accepted');
         }
-        Alert.alert('Compte créé !', 'Vérifie ton email pour confirmer ton compte.');
+        router.replace('/welcome' as any);
       }
     } catch (error: any) {
       Alert.alert('Erreur', error.message);
@@ -92,7 +103,21 @@ export default function Login() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.btnPrimary} onPress={handleAuth} disabled={loading}>
+        {!isLogin && (
+          <TouchableOpacity style={styles.cguRow} onPress={() => setCguAccepted(!cguAccepted)} activeOpacity={0.7}>
+            <View style={[styles.checkbox, cguAccepted && styles.checkboxChecked]}>
+              {cguAccepted && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={styles.cguText}>
+              {'J\'accepte les '}
+              <Text style={styles.cguLink} onPress={() => router.push('/legal' as any)}>CGU</Text>
+              {' et la '}
+              <Text style={styles.cguLink} onPress={() => router.push('/legal' as any)}>Politique de confidentialité</Text>
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={[styles.btnPrimary, (!isLogin && !cguAccepted) && styles.btnDisabled]} onPress={handleAuth} disabled={loading}>
           {loading ? <ActivityIndicator color="white" /> : <Text style={styles.btnPrimaryText}>{isLogin ? 'Se connecter' : 'Créer mon compte'}</Text>}
         </TouchableOpacity>
 
@@ -169,7 +194,14 @@ const styles = StyleSheet.create({
   forgotBtn: { alignSelf: 'flex-end', marginBottom: 20, marginTop: -8 },
   forgotText: { color: '#1a6bff', fontSize: 13, fontWeight: '600' },
   btnPrimary: { backgroundColor: '#1a6bff', borderRadius: 50, padding: 18, alignItems: 'center', marginTop: 4 },
+  btnDisabled: { opacity: 0.45 },
   btnPrimaryText: { color: 'white', fontSize: 16, fontWeight: '700' },
+  cguRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 20 },
+  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: '#d0d0d0', justifyContent: 'center', alignItems: 'center', marginTop: 1, flexShrink: 0 },
+  checkboxChecked: { backgroundColor: '#1a6bff', borderColor: '#1a6bff' },
+  checkmark: { color: 'white', fontSize: 13, fontWeight: '700' },
+  cguText: { flex: 1, fontSize: 13, color: '#555', lineHeight: 19 },
+  cguLink: { color: '#1a6bff', fontWeight: '600' },
   separator: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 24 },
   line: { flex: 1, height: 1, backgroundColor: '#e8e8e8' },
   separatorText: { color: '#999', fontSize: 13 },

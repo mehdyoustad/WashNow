@@ -20,6 +20,10 @@ export default function Profile() {
       { icon: '🔲', label: 'Widgets écran d\'accueil', badge: '', green: false, onPress: () => router.push('/widget-preview' as any) },
       { icon: '❓', label: 'Aide & Support', badge: '', green: false },
     ]},
+    { title: 'Légal & Compte', items: [
+      { icon: '📋', label: 'CGU & Confidentialité', badge: '', green: false, onPress: () => router.push('/legal' as any) },
+      { icon: '🗑️', label: 'Supprimer mon compte', badge: '', green: false, danger: true, onPress: () => router.push('/delete-account' as any) },
+    ]},
   ];
 
   return (
@@ -78,10 +82,10 @@ export default function Profile() {
               {section.items.map((item: any, ii) => (
   <TouchableOpacity key={ii} style={[styles.menuItem, ii > 0 && [styles.menuItemBorder, { borderTopColor: colors.border }]]} onPress={item.onPress}>
                   <View style={[styles.menuIcon, { backgroundColor: colors.cardAlt }]}><Text style={{ fontSize: 18 }}>{item.icon}</Text></View>
-                  <Text style={[styles.menuLabel, { color: colors.text }]}>{item.label}</Text>
+                  <Text style={[styles.menuLabel, { color: item.danger ? '#cc3333' : colors.text }]}>{item.label}</Text>
                   {item.badge && <View style={styles.badge}><Text style={styles.badgeText}>{item.badge}</Text></View>}
                   {item.green && <View style={styles.greenBadge}><Text style={styles.greenBadgeText}>+10€</Text></View>}
-                  <Text style={[styles.menuArrow, { color: colors.textSub }]}>›</Text>
+                  <Text style={[styles.menuArrow, { color: item.danger ? '#cc3333' : colors.textSub }]}>›</Text>
                 </TouchableOpacity>
               ))}
             </View>
