@@ -5,9 +5,9 @@ const REFERRAL_CODE = 'MEHDY20';
 const REFERRAL_LINK = `https://washnow.app/invite/${REFERRAL_CODE}`;
 
 const HOW_IT_WORKS = [
-  { icon: '📤', title: 'Partage ton code', desc: 'Envoie ton code à tes amis via SMS, WhatsApp ou réseaux sociaux.' },
-  { icon: '🎉', title: "Ton ami s'inscrit", desc: "Il crée son compte WashNow et passe sa 1ère commande." },
-  { icon: '💶', title: 'Vous gagnez tous les deux', desc: 'Toi : 10€ offerts. Lui : 10€ de réduction sur sa première prestation.' },
+  { icon: '01', title: 'Partage ton code', desc: 'Envoie ton code à tes amis via SMS, WhatsApp ou réseaux sociaux.' },
+  { icon: '02', title: "Ton ami s'inscrit", desc: "Il crée son compte WashNow et passe sa 1ère commande." },
+  { icon: '03', title: 'Vous gagnez tous les deux', desc: 'Toi : 10€ offerts. Lui : 10€ de réduction sur sa première prestation.' },
 ];
 
 export default function Referral() {
@@ -16,7 +16,7 @@ export default function Referral() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `🚿 Essaie WashNow, le service de lavage de voiture à domicile !\nUtilise mon code ${REFERRAL_CODE} et profite de 10€ offerts sur ta première réservation.\n👉 ${REFERRAL_LINK}`,
+        message: `Essaie WashNow, le service de lavage de voiture à domicile !\nUtilise mon code ${REFERRAL_CODE} et profite de 10€ offerts sur ta première réservation.\n${REFERRAL_LINK}`,
         title: 'WashNow — Parrainage',
       });
     } catch {
@@ -37,7 +37,7 @@ export default function Referral() {
 
       {/* Hero */}
       <View style={styles.hero}>
-        <Text style={styles.heroEmoji}>🎁</Text>
+        <View style={styles.heroIconBox}><Text style={styles.heroIconText}>10€</Text></View>
         <Text style={styles.heroTitle}>Invitez vos amis,{'\n'}gagnez ensemble</Text>
         <Text style={styles.heroSub}>
           Pour chaque ami parrainé, vous recevez{' '}
@@ -59,7 +59,7 @@ export default function Referral() {
         {HOW_IT_WORKS.map((step, i) => (
           <View key={i} style={styles.howRow}>
             <View style={styles.howIcon}>
-              <Text style={{ fontSize: 22 }}>{step.icon}</Text>
+              <Text style={styles.howIconText}>{step.icon}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.howTitle}>{step.title}</Text>
@@ -101,6 +101,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroEmoji: { fontSize: 52, marginBottom: 12 },
+  heroIconBox: { width: 72, height: 72, backgroundColor: '#1558E7', borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  heroIconText: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
+  howIconText: { fontSize: 13, fontWeight: '900', color: '#1558E7' },
   heroTitle: {
     fontSize: 26,
     fontWeight: '800',

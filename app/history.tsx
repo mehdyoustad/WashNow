@@ -11,9 +11,20 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+
+type StatusFilterKey = 'all' | 'confirmé' | 'terminé' | 'annulé' | 'en cours';
+
+const STATUS_FILTERS: { key: StatusFilterKey; label: string }[] = [
+  { key: 'all', label: 'Tous' },
+  { key: 'confirmé', label: 'Confirmés' },
+  { key: 'terminé', label: 'Terminés' },
+  { key: 'annulé', label: 'Annulés' },
+  { key: 'en cours', label: 'En cours' },
+];
 
 const PAGE_SIZE = 4;
 
@@ -117,6 +128,8 @@ export default function History() {
   const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
   const [page, setPage] = useState(1);
   const [fromCache, setFromCache] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilterKey>('all');
   const [ratingModal, setRatingModal] = useState<{ visible: boolean; bookingId: string | null }>({
     visible: false,
     bookingId: null,
@@ -138,11 +151,30 @@ export default function History() {
     }
   }, [isConnected]);
 
-  // Pagination
-  const visibleBookings = useMemo(() => bookings.slice(0, page * PAGE_SIZE), [bookings, page]);
-  const hasMore = bookings.length > page * PAGE_SIZE;
+  // Filtrage + pagination
+  const filteredBookings = useMemo(() => {
+    return bookings.filter(b => {
+      const matchStatus = statusFilter === 'all' || b.status === statusFilter;
+      const q = search.toLowerCase();
+      const matchSearch = !q || b.service.toLowerCase().includes(q) || b.washer.toLowerCase().includes(q) || b.address.toLowerCase().includes(q);
+      return matchStatus && matchSearch;
+    });
+  }, [bookings, statusFilter, search]);
+
+  const visibleBookings = useMemo(() => filteredBookings.slice(0, page * PAGE_SIZE), [filteredBookings, page]);
+  const hasMore = filteredBookings.length > page * PAGE_SIZE;
 
   const loadMore = useCallback(() => setPage(p => p + 1), []);
+
+  const handleStatusFilter = useCallback((key: StatusFilterKey) => {
+    setStatusFilter(key);
+    setPage(1);
+  }, []);
+
+  const handleSearch = useCallback((text: string) => {
+    setSearch(text);
+    setPage(1);
+  }, []);
 
   const openRatingModal = useCallback((id: string) => {
     setHoverRating(0);
@@ -204,7 +236,7 @@ export default function History() {
         </style>
       </head>
       <body>
-        <div class="logo">🚿 WashNow</div>
+        <div class="logo">WashNow</div>
         <div class="tagline">Le lavage auto à domicile</div>
         <h2>Facture</h2>
         <div class="invoice-num">N° WN-${booking.id.padStart(5, '0')} · ${booking.date}</div>
@@ -245,11 +277,46 @@ export default function History() {
         <View style={{ width: 40 }} />
       </View>
 
+      {/* Recherche */}
+      <View style={[styles.searchWrap, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <TextInput
+          style={[styles.searchInput, { color: colors.text, backgroundColor: colors.cardAlt }]}
+          value={search}
+          onChangeText={handleSearch}
+          placeholder="Service, laveur, adresse..."
+          placeholderTextColor={colors.textMuted}
+        />
+      </View>
+
+      {/* Filtres statut */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={[styles.filterBar, { borderBottomColor: colors.border }]}
+        contentContainerStyle={{ gap: 8, paddingHorizontal: 16, paddingVertical: 10 }}
+      >
+        {STATUS_FILTERS.map(f => (
+          <TouchableOpacity
+            key={f.key}
+            style={[
+              styles.filterChip,
+              { borderColor: colors.border, backgroundColor: colors.card },
+              statusFilter === f.key && { backgroundColor: colors.primary, borderColor: colors.primary },
+            ]}
+            onPress={() => handleStatusFilter(f.key)}
+          >
+            <Text style={[styles.filterChipText, { color: statusFilter === f.key ? 'white' : colors.textSub }]}>
+              {f.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={{ height: 8 }} />
         {fromCache && (
           <View style={styles.cacheBanner}>
-            <Text style={styles.cacheBannerText}>📵 Données en cache — reconnectez-vous pour actualiser</Text>
+            <Text style={styles.cacheBannerText}>Données en cache — reconnectez-vous pour actualiser</Text>
           </View>
         )}
         {visibleBookings.map((booking) => {
@@ -271,7 +338,7 @@ export default function History() {
                   </View>
                   {booking.recurring && (
                     <View style={styles.recurringBadge}>
-                      <Text style={styles.recurringBadgeText}>🔄 Récurrent</Text>
+                      <Text style={styles.recurringBadgeText}>Récurrent</Text>
                     </View>
                   )}
                 </View>
@@ -282,11 +349,11 @@ export default function History() {
 
               {/* Details */}
               <View style={styles.detailRow}>
-                <Text style={styles.detailIcon}>📅</Text>
+                <View style={styles.detailIconBox}><Text style={styles.detailIconText}>CAL</Text></View>
                 <Text style={[styles.detailText, { color: colors.textSub }]}>{booking.date}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailIcon}>📍</Text>
+                <View style={styles.detailIconBox}><Text style={styles.detailIconText}>LOC</Text></View>
                 <Text style={[styles.detailText, { color: colors.textSub }]}>{booking.address}</Text>
               </View>
 
@@ -313,7 +380,7 @@ export default function History() {
                         </TouchableOpacity>
                       )}
                       <TouchableOpacity style={styles.pdfBtn} onPress={() => downloadInvoice(booking)}>
-                        <Text style={styles.pdfBtnText}>📄</Text>
+                        <Text style={styles.pdfBtnText}>PDF</Text>
                       </TouchableOpacity>
                     </>
                   )}
@@ -414,6 +481,8 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#f5f5f5', marginBottom: 12 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   detailIcon: { fontSize: 14 },
+  detailIconBox: { width: 30, height: 20, backgroundColor: '#F3F4F6', borderRadius: 4, justifyContent: 'center', alignItems: 'center' },
+  detailIconText: { fontSize: 9, fontWeight: '800', color: '#9CA3AF' },
   detailText: { fontSize: 13, color: '#666' }, // overridden by colors.textSub inline
   cardFooter: {
     flexDirection: 'row',
@@ -441,7 +510,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pdfBtnText: { fontSize: 16 },
+  pdfBtnText: { fontSize: 10, fontWeight: '800', color: '#6B7280' },
   cancelBtn: {
     backgroundColor: '#fff0f0',
     paddingHorizontal: 14,
@@ -492,4 +561,9 @@ const styles = StyleSheet.create({
   cacheBannerText: { fontSize: 12, color: '#cc8800', textAlign: 'center', fontWeight: '600' },
   loadMoreBtn: { margin: 16, padding: 14, borderRadius: 12, borderWidth: 1.5, borderColor: '#e0e0e0', alignItems: 'center' },
   loadMoreText: { fontSize: 14, fontWeight: '600', color: '#1a6bff' },
+  searchWrap: { paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1 },
+  searchInput: { borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  filterBar: { borderBottomWidth: 1, flexGrow: 0 },
+  filterChip: { borderRadius: 20, borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 7 },
+  filterChipText: { fontSize: 13, fontWeight: '600' },
 });

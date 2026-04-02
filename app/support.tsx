@@ -44,9 +44,9 @@ const FAQS: FAQ[] = [
 ];
 
 const CONTACT_OPTIONS = [
-  { icon: '💬', label: 'Chat en direct', sublabel: 'Réponse en moins de 5 min', color: '#1a6bff', onPress: () => {} },
-  { icon: '📧', label: 'Envoyer un email', sublabel: 'contact@washnow.fr', color: '#9c27b0', onPress: () => Linking.openURL('mailto:contact@washnow.fr') },
-  { icon: '📞', label: 'Appeler le support', sublabel: 'Lun-Ven 9h-18h', color: '#00c853', onPress: () => Linking.openURL('tel:+33123456789') },
+  { icon: 'CH', label: 'Chat en direct', sublabel: 'Réponse en moins de 5 min', color: '#1558E7', onPress: () => {} },
+  { icon: 'EM', label: 'Envoyer un email', sublabel: 'contact@washnow.fr', color: '#7C3AED', onPress: () => Linking.openURL('mailto:contact@washnow.fr') },
+  { icon: 'TL', label: 'Appeler le support', sublabel: 'Lun-Ven 9h-18h', color: '#16A34A', onPress: () => Linking.openURL('tel:+33123456789') },
 ];
 
 export default function Support() {
@@ -67,7 +67,7 @@ export default function Support() {
     setSending(false);
     setSubject('');
     setMessage('');
-    Alert.alert('Message envoyé ✅', 'Notre équipe vous répondra dans les 24h sur votre email.');
+    Alert.alert('Message envoyé', 'Notre équipe vous répondra dans les 24h sur votre email.');
   };
 
   return (
@@ -91,7 +91,7 @@ export default function Support() {
               activeOpacity={0.7}
             >
               <View style={[styles.contactIcon, { backgroundColor: opt.color + '18' }]}>
-                <Text style={{ fontSize: 20 }}>{opt.icon}</Text>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: opt.color }}>{opt.icon}</Text>
               </View>
               <View style={styles.contactInfo}>
                 <Text style={[styles.contactLabel, { color: colors.text }]}>{opt.label}</Text>

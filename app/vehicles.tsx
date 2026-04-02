@@ -75,11 +75,11 @@ const carModels: Record<string, string[]> = {
 
 // ─── Types & couleurs ─────────────────────────────────────────────────────────
 const carTypes = ['Berline', 'SUV', 'Citadine', 'Break', 'Coupé', 'Monospace', 'Utilitaire', 'Cabriolet', 'Pick-up'];
-const carColors = ['⚫ Noir', '⚪ Blanc', '🔴 Rouge', '🔵 Bleu', '🟤 Marron', '🔘 Gris', '🟡 Jaune', '🟢 Vert', '🟠 Orange', '🟣 Violet', '🩷 Rose', '🤍 Beige'];
+const carColors = ['Noir', 'Blanc', 'Rouge', 'Bleu', 'Marron', 'Gris', 'Jaune', 'Vert', 'Orange', 'Violet', 'Rose', 'Beige'];
 
 const typeIcons: Record<string, string> = {
-  'Berline': '🚗', 'SUV': '🚙', 'Citadine': '🚘', 'Break': '🚗',
-  'Coupé': '🏎️', 'Monospace': '🚐', 'Utilitaire': '🚛', 'Cabriolet': '🚗', 'Pick-up': '🛻',
+  'Berline': 'BR', 'SUV': 'SV', 'Citadine': 'CT', 'Break': 'BK',
+  'Coupé': 'CP', 'Monospace': 'MN', 'Utilitaire': 'UT', 'Cabriolet': 'CB', 'Pick-up': 'PK',
 };
 
 // ─── Composant ────────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ export default function Vehicles() {
   const [brandSearch, setBrandSearch] = useState('');
   const [modelSearch, setModelSearch] = useState('');
   const [form, setForm] = useState({
-    brand: '', model: '', year: '', plate: '', color: '⚫ Noir', type: 'Berline',
+    brand: '', model: '', year: '', plate: '', color: 'Noir', type: 'Berline',
   });
 
   useEffect(() => { fetchVehicles(); }, []);
@@ -137,7 +137,7 @@ export default function Vehicles() {
     if (error) {
       if (error.message.includes('column') || error.message.includes('schema cache')) {
         Alert.alert(
-          '⚠️ Migration Supabase requise',
+          'Migration Supabase requise',
           'Ta table "vehicles" manque de colonnes.\n\nExécute ce SQL dans Supabase > SQL Editor :\n\nALTER TABLE vehicles\n  ADD COLUMN IF NOT EXISTS year TEXT,\n  ADD COLUMN IF NOT EXISTS plate TEXT,\n  ADD COLUMN IF NOT EXISTS color TEXT DEFAULT \'⚫ Noir\',\n  ADD COLUMN IF NOT EXISTS type TEXT DEFAULT \'Berline\',\n  ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT false;',
           [{ text: 'OK' }]
         );
@@ -153,7 +153,7 @@ export default function Vehicles() {
   };
 
   const resetForm = () => {
-    setForm({ brand: '', model: '', year: '', plate: '', color: '⚫ Noir', type: 'Berline' });
+    setForm({ brand: '', model: '', year: '', plate: '', color: 'Noir', type: 'Berline' });
     setBrandSearch('');
     setModelSearch('');
   };
@@ -212,14 +212,16 @@ export default function Vehicles() {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {fromCache && (
           <View style={styles.cacheBanner}>
-            <Text style={styles.cacheBannerText}>📵 Données non synchronisées — mode hors ligne</Text>
+            <Text style={styles.cacheBannerText}>Données non synchronisées — mode hors ligne</Text>
           </View>
         )}
         {loading ? (
           <ActivityIndicator size="large" color="#1a6bff" style={{ marginTop: 60 }} />
         ) : vehicles.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🚗</Text>
+            <View style={styles.emptyIconBox}>
+            <Text style={styles.emptyIconText}>VH</Text>
+          </View>
             <Text style={styles.emptyTitle}>Aucun véhicule</Text>
             <Text style={styles.emptySub}>Ajoutez votre premier véhicule pour réserver plus vite</Text>
             <TouchableOpacity style={styles.emptyBtn} onPress={() => setShowModal(true)}>
@@ -231,12 +233,12 @@ export default function Vehicles() {
             <View key={i} style={[styles.vehicleCard, v.is_default && styles.vehicleCardDefault]}>
               {v.is_default && (
                 <View style={styles.defaultBadge}>
-                  <Text style={styles.defaultBadgeText}>⭐ Principal</Text>
+                  <Text style={styles.defaultBadgeText}>Principal</Text>
                 </View>
               )}
               <View style={styles.vehicleRow}>
                 <View style={styles.vehicleIconBox}>
-                  <Text style={{ fontSize: 32 }}>{typeIcons[v.type] ?? '🚗'}</Text>
+                  <Text style={styles.vehicleTypeText}>{typeIcons[v.type] ?? 'VH'}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.vehicleName}>{v.brand} {v.model}</Text>
@@ -253,11 +255,11 @@ export default function Vehicles() {
               <View style={styles.vehicleActions}>
                 {!v.is_default && (
                   <TouchableOpacity style={styles.actionBtn} onPress={() => setDefault(v.id)}>
-                    <Text style={styles.actionBtnText}>⭐ Par défaut</Text>
+                    <Text style={styles.actionBtnText}>Par défaut</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity style={[styles.actionBtn, styles.actionBtnDanger]} onPress={() => deleteVehicle(v.id)}>
-                  <Text style={[styles.actionBtnText, { color: '#cc3333' }]}>🗑️ Supprimer</Text>
+                  <Text style={[styles.actionBtnText, { color: '#cc3333' }]}>Supprimer</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -282,14 +284,14 @@ export default function Vehicles() {
             <Text style={styles.fieldLabel}>Marque</Text>
             <TextInput
               style={[styles.input, { marginBottom: 10 }]}
-              placeholder="🔍 Rechercher une marque..."
+              placeholder="Rechercher une marque..."
               value={brandSearch}
               onChangeText={setBrandSearch}
               placeholderTextColor="#999"
             />
             {form.brand !== '' && (
               <View style={styles.selectedChip}>
-                <Text style={styles.selectedChipText}>✅ {form.brand}</Text>
+                <Text style={styles.selectedChipText}>{form.brand}</Text>
                 <TouchableOpacity onPress={() => setForm(f => ({ ...f, brand: '', model: '' }))}>
                   <Text style={{ color: '#999', fontSize: 16 }}>✕</Text>
                 </TouchableOpacity>
@@ -315,14 +317,14 @@ export default function Vehicles() {
               <>
                 <TextInput
                   style={[styles.input, { marginBottom: 10 }]}
-                  placeholder={`🔍 Rechercher un modèle ${form.brand}...`}
+                  placeholder={`Rechercher un modèle ${form.brand}...`}
                   value={modelSearch}
                   onChangeText={setModelSearch}
                   placeholderTextColor="#999"
                 />
                 {form.model !== '' && (
                   <View style={styles.selectedChip}>
-                    <Text style={styles.selectedChipText}>✅ {form.model}</Text>
+                    <Text style={styles.selectedChipText}>{form.model}</Text>
                     <TouchableOpacity onPress={() => setForm(f => ({ ...f, model: '' }))}>
                       <Text style={{ color: '#999', fontSize: 16 }}>✕</Text>
                     </TouchableOpacity>
@@ -392,7 +394,7 @@ export default function Vehicles() {
                     style={[styles.chip, form.type === t && styles.chipSelected]}
                     onPress={() => setForm(f => ({ ...f, type: t }))}
                   >
-                    <Text style={{ fontSize: 16 }}>{typeIcons[t] ?? '🚗'}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#6B7280' }}>{typeIcons[t] ?? 'VH'}</Text>
                     <Text style={[styles.chipText, form.type === t && styles.chipTextSelected]}>{t}</Text>
                   </TouchableOpacity>
                 ))}
@@ -416,7 +418,7 @@ export default function Vehicles() {
             <TouchableOpacity style={styles.saveBtn} onPress={addVehicle} disabled={saving}>
               {saving
                 ? <ActivityIndicator color="white" />
-                : <Text style={styles.saveBtnText}>Ajouter le véhicule 🚗</Text>
+                : <Text style={styles.saveBtnText}>Ajouter le véhicule</Text>
               }
             </TouchableOpacity>
 
@@ -439,6 +441,8 @@ const styles = StyleSheet.create({
   scroll: { flex: 1, padding: 20 },
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 40 },
   emptyIcon: { fontSize: 64, marginBottom: 20 },
+  emptyIconBox: { width: 80, height: 80, backgroundColor: '#F3F4F6', borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  emptyIconText: { fontSize: 20, fontWeight: '800', color: '#9CA3AF' },
   emptyTitle: { fontSize: 22, fontWeight: '700', color: '#0a0a0a', marginBottom: 10 },
   emptySub: { fontSize: 14, color: '#999', textAlign: 'center', lineHeight: 22, marginBottom: 30 },
   emptyBtn: { backgroundColor: '#1a6bff', borderRadius: 50, paddingHorizontal: 28, paddingVertical: 14 },
@@ -449,6 +453,7 @@ const styles = StyleSheet.create({
   defaultBadgeText: { color: '#1a6bff', fontSize: 12, fontWeight: '700' },
   vehicleRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 14 },
   vehicleIconBox: { width: 64, height: 64, backgroundColor: '#f5f5f5', borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  vehicleTypeText: { fontSize: 14, fontWeight: '800', color: '#6B7280' },
   vehicleName: { fontSize: 17, fontWeight: '700', color: '#0a0a0a' },
   vehicleDetails: { fontSize: 13, color: '#999', marginTop: 3 },
   plateBadge: { backgroundColor: '#fff8e6', borderWidth: 1, borderColor: '#FFB800', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: 6 },

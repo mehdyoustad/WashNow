@@ -14,10 +14,10 @@ type SavedCard = {
 };
 
 const BRAND_ICONS: Record<string, string> = {
-  visa: '💳',
-  mastercard: '💳',
-  amex: '💳',
-  default: '💳',
+  visa: 'VI',
+  mastercard: 'MC',
+  amex: 'AX',
+  default: 'CB',
 };
 
 export default function PaymentMethods() {
@@ -146,7 +146,7 @@ export default function PaymentMethods() {
           <ActivityIndicator size="large" color="#1a6bff" style={{ marginTop: 60 }} />
         ) : cards.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>💳</Text>
+            <View style={styles.emptyIconBox}><Text style={styles.emptyIconText}>CB</Text></View>
             <Text style={styles.emptyTitle}>Aucune carte enregistrée</Text>
             <Text style={styles.emptySub}>Ajoutez une carte pour payer encore plus vite</Text>
           </View>
@@ -157,7 +157,7 @@ export default function PaymentMethods() {
               <View key={card.id} style={[styles.cardItem, card.isDefault && styles.cardItemDefault]}>
                 <View style={styles.cardLeft}>
                   <View style={styles.cardIconBox}>
-                    <Text style={{ fontSize: 24 }}>{BRAND_ICONS[card.brand] ?? BRAND_ICONS.default}</Text>
+                    <Text style={styles.cardIconText}>{BRAND_ICONS[card.brand] ?? BRAND_ICONS.default}</Text>
                   </View>
                   <View>
                     <Text style={styles.cardNumber}>
@@ -188,7 +188,7 @@ export default function PaymentMethods() {
 
         {/* Sécurité */}
         <View style={styles.securityBox}>
-          <Text style={styles.securityIcon}>🔒</Text>
+          <View style={styles.securityIconBox}><Text style={styles.securityIconText}>SSL</Text></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.securityTitle}>Paiement sécurisé</Text>
             <Text style={styles.securitySub}>Vos données bancaires sont chiffrées et gérées par Stripe. WashNow ne stocke jamais vos numéros de carte.</Text>
@@ -249,6 +249,11 @@ const styles = StyleSheet.create({
   cardDeleteText: { fontSize: 12, color: '#cc3333', fontWeight: '600' },
   emptyState: { alignItems: 'center', paddingTop: 60, paddingBottom: 20 },
   emptyIcon: { fontSize: 56, marginBottom: 16 },
+  emptyIconBox: { width: 72, height: 72, backgroundColor: '#F3F4F6', borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  emptyIconText: { fontSize: 16, fontWeight: '900', color: '#9CA3AF' },
+  cardIconText: { fontSize: 11, fontWeight: '900', color: '#374151' },
+  securityIconBox: { width: 40, height: 40, backgroundColor: '#EFF6FF', borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  securityIconText: { fontSize: 10, fontWeight: '900', color: '#1558E7' },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: '#0a0a0a', marginBottom: 8 },
   emptySub: { fontSize: 14, color: '#999', textAlign: 'center', lineHeight: 22 },
   securityBox: { flexDirection: 'row', gap: 12, backgroundColor: 'white', borderRadius: 16, padding: 16, marginTop: 16, alignItems: 'flex-start' },

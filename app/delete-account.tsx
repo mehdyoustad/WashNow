@@ -72,7 +72,7 @@ export default function DeleteAccount() {
         {step === 'confirm' ? (
           <>
             <View style={styles.warningBox}>
-              <Text style={styles.warningIcon}>⚠️</Text>
+              <View style={styles.warningIconBox}><Text style={styles.warningIconBoxText}>!</Text></View>
               <Text style={styles.warningTitle}>Action irréversible</Text>
               <Text style={styles.warningText}>
                 La suppression de votre compte entraîne la perte définitive de :
@@ -120,7 +120,7 @@ export default function DeleteAccount() {
             <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} disabled={loading}>
               {loading
                 ? <ActivityIndicator color="white" />
-                : <Text style={styles.deleteBtnText}>🗑️ Supprimer définitivement</Text>}
+                : <Text style={styles.deleteBtnText}>Supprimer définitivement</Text>}
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.cancelBtn} onPress={() => setStep('confirm')}>
@@ -142,6 +142,8 @@ const styles = StyleSheet.create({
   content: { flex: 1, padding: 24 },
   warningBox: { backgroundColor: '#fff5f5', borderRadius: 16, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: '#ffcccc' },
   warningIcon: { fontSize: 36, textAlign: 'center', marginBottom: 12 },
+  warningIconBox: { width: 56, height: 56, backgroundColor: '#FEE2E2', borderRadius: 14, justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginBottom: 12 },
+  warningIconBoxText: { fontSize: 24, fontWeight: '900', color: '#DC2626' },
   warningTitle: { fontSize: 18, fontWeight: '700', color: '#cc3333', textAlign: 'center', marginBottom: 10 },
   warningText: { fontSize: 13, color: '#555', marginBottom: 12 },
   lossRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 },

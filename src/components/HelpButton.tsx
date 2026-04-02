@@ -18,43 +18,43 @@ type Message = { id: string; from: 'user' | 'bot'; text: string };
 const FAQ: Array<{ triggers: string[]; answer: string }> = [
   {
     triggers: ['où est', 'laveur', 'position', 'localiser', 'gps', 'où'],
-    answer: "📍 Votre laveur Karim B. est actuellement en route ! Il sera chez vous dans environ 8 minutes. Rendez-vous sur l'écran Suivi pour voir sa position en temps réel.",
+    answer: "Votre laveur Karim B. est actuellement en route ! Il sera chez vous dans environ 8 minutes. Rendez-vous sur l'écran Suivi pour voir sa position en temps réel.",
   },
   {
     triggers: ['annuler', 'annulation', 'cancel'],
-    answer: "❌ Pour annuler votre réservation, rendez-vous dans Historique › sélectionnez le lavage › puis appuyez sur « Annuler ». Un remboursement sera effectué sous 3 à 5 jours ouvrés si l'annulation est faite plus de 2h avant.",
+    answer: "Pour annuler votre réservation, rendez-vous dans Historique › sélectionnez le lavage › puis appuyez sur « Annuler ». Un remboursement sera effectué sous 3 à 5 jours ouvrés si l'annulation est faite plus de 2h avant.",
   },
   {
     triggers: ['service', 'choisir', 'recommande', 'quel', 'différence', 'offre'],
-    answer: "✨ Voici nos recommandations :\n• 🚗 Extérieur (19€) — rapide, idéal si l'intérieur est propre\n• 💧 Complet (39€) — intérieur + extérieur, le plus demandé\n• ⭐ Premium (59€) — traitement carrosserie + lustrage, parfait pour les occasions\n\nPour un SUV, le Complet est généralement le meilleur rapport qualité/prix.",
+    answer: "Voici nos recommandations :\n• Extérieur (19€) — rapide, idéal si l'intérieur est propre\n• Complet (39€) — intérieur + extérieur, le plus demandé\n• Premium (59€) — traitement carrosserie + lustrage, parfait pour les occasions\n\nPour un SUV, le Complet est généralement le meilleur rapport qualité/prix.",
   },
   {
     triggers: ['prix', 'tarif', 'coût', 'combien'],
-    answer: "💰 Nos tarifs :\n• Extérieur : 19€\n• Complet : 39€\n• Premium : 59€\n• Abonnement mensuel : dès 49€/mois (-20%)\n\nDéplacement toujours gratuit !",
+    answer: "Nos tarifs :\n• Extérieur : 19€\n• Complet : 39€\n• Premium : 59€\n• Abonnement mensuel : dès 49€/mois (-20%)\n\nDéplacement toujours gratuit !",
   },
   {
     triggers: ['paiement', 'payer', 'carte', 'stripe'],
-    answer: "💳 Nous acceptons les cartes bancaires (Visa, Mastercard), Apple Pay et Google Pay. Votre paiement est sécurisé via Stripe. Vous pouvez gérer vos cartes dans Profil › Paiement.",
+    answer: "Nous acceptons les cartes bancaires (Visa, Mastercard), Apple Pay et Google Pay. Votre paiement est sécurisé via Stripe. Vous pouvez gérer vos cartes dans Profil › Paiement.",
   },
   {
     triggers: ['points', 'fidélité', 'récompense', 'loyalty'],
-    answer: "🏆 Vous cumulez des points à chaque lavage :\n• 1 point = 1€ dépensé\n• 500 pts → -5€\n• 1000 pts → -10€\n• 1500 pts → Lavage offert\n\nRetrouvez votre solde dans Profil › Programme fidélité.",
+    answer: "Vous cumulez des points à chaque lavage :\n• 1 point = 1€ dépensé\n• 500 pts → -5€\n• 1000 pts → -10€\n• 1500 pts → Lavage offert\n\nRetrouvez votre solde dans Profil › Programme fidélité.",
   },
   {
     triggers: ['heure', 'disponible', 'créneau', 'horaire', 'rdv'],
-    answer: "📅 Nos laveurs sont disponibles de 8h à 18h, 7j/7. Les créneaux sont affichés directement dans l'étape 3 de la réservation. Pour une intervention urgente, une option «⚡ +1h» est disponible avec un supplément de 15€.",
+    answer: "Nos laveurs sont disponibles de 8h à 18h, 7j/7. Les créneaux sont affichés directement dans l'étape 3 de la réservation. Pour une intervention urgente, une option +1h est disponible avec un supplément de 15€.",
   },
   {
     triggers: ['météo', 'pluie', 'mauvais temps'],
-    answer: "🌧️ En cas de pluie, le lavage extérieur est déconseillé. Nous vous recommandons le service intérieur uniquement (nettoyage complet de l'habitacle). Vous pouvez reporter votre RDV sans frais jusqu'à 2h avant.",
+    answer: "En cas de pluie, le lavage extérieur est déconseillé. Nous vous recommandons le service intérieur uniquement (nettoyage complet de l'habitacle). Vous pouvez reporter votre RDV sans frais jusqu'à 2h avant.",
   },
   {
     triggers: ['parrainage', 'code', 'ami', 'réduction', 'parrain'],
-    answer: "🎁 Parrainez vos amis et gagnez 10€ pour chaque inscription ! Votre code de parrainage est disponible dans Profil › Parrainer un ami. Votre ami bénéficie aussi de 5€ offerts.",
+    answer: "Parrainez vos amis et gagnez 10€ pour chaque inscription ! Votre code de parrainage est disponible dans Profil › Parrainer un ami. Votre ami bénéficie aussi de 5€ offerts.",
   },
 ];
 
-const FALLBACK = "Je n'ai pas bien compris votre question 🤔 Voici ce que je peux vous aider :\n• Localiser votre laveur\n• Annuler une réservation\n• Choisir un service\n• Tarifs et paiement\n• Points fidélité\n\nOu appelez-nous au 📞 01 23 45 67 89";
+const FALLBACK = "Je n'ai pas bien compris votre question. Voici ce que je peux vous aider :\n• Localiser votre laveur\n• Annuler une réservation\n• Choisir un service\n• Tarifs et paiement\n• Points fidélité\n\nOu appelez-nous au 01 23 45 67 89";
 
 function getBotAnswer(input: string): string {
   const lower = input.toLowerCase();
@@ -68,7 +68,7 @@ export default function HelpButton() {
   const { colors, isDark } = useTheme();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: '0', from: 'bot', text: "👋 Bonjour ! Je suis l'assistant WashNow. Comment puis-je vous aider ?" },
+    { id: '0', from: 'bot', text: "Bonjour ! Je suis l'assistant WashNow. Comment puis-je vous aider ?" },
   ]);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList>(null);
@@ -100,7 +100,7 @@ export default function HelpButton() {
           onPressOut={onPressOut}
           activeOpacity={1}
         >
-          <Text style={styles.fabIcon}>💬</Text>
+          <Text style={styles.fabIcon}>?</Text>
           <Text style={styles.fabLabel}>Aide</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -111,7 +111,7 @@ export default function HelpButton() {
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.sheet, { backgroundColor: colors.card }]}>
             {/* Header */}
             <View style={[styles.chatHeader, { borderBottomColor: colors.border }]}>
-              <View style={styles.botAvatar}><Text style={{ fontSize: 18 }}>🤖</Text></View>
+              <View style={styles.botAvatar}><Text style={{ fontSize: 14, fontWeight: '800', color: '#1558E7' }}>AI</Text></View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.chatTitle, { color: colors.text }]}>Assistant WashNow</Text>
                 <Text style={styles.chatOnline}>● En ligne</Text>

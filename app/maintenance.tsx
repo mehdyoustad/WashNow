@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 export default function Maintenance() {
   return (
     <View style={styles.container}>
-      <Text style={styles.emoji}>🔧</Text>
+      <View style={styles.iconBox}><Text style={styles.iconBoxText}>MNT</Text></View>
       <Text style={styles.title}>Maintenance en cours</Text>
       <Text style={styles.subtitle}>
         Nous améliorons WashNow pour vous offrir une meilleure expérience.{'\n'}
@@ -11,7 +11,7 @@ export default function Maintenance() {
       </Text>
       <View style={styles.infoBox}>
         <Text style={styles.infoText}>
-          💬 Pour toute urgence, contactez-nous sur{'\n'}
+          Pour toute urgence, contactez-nous sur{'\n'}
           <Text style={styles.infoEmail}>support@washnow.fr</Text>
         </Text>
       </View>
@@ -27,6 +27,8 @@ export default function Maintenance() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a', justifyContent: 'center', alignItems: 'center', padding: 32 },
   emoji: { fontSize: 64, marginBottom: 24 },
+  iconBox: { width: 80, height: 80, backgroundColor: '#1558E7', borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  iconBoxText: { fontSize: 14, fontWeight: '900', color: '#FFFFFF' },
   title: { fontSize: 26, fontWeight: '800', color: 'white', textAlign: 'center', marginBottom: 12 },
   subtitle: { fontSize: 15, color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 22, marginBottom: 32 },
   infoBox: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 20, width: '100%', marginBottom: 40 },

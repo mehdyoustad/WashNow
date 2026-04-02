@@ -8,28 +8,28 @@ const MAX_POINTS = 1000;
 const REWARDS = [
   {
     id: '1',
-    icon: '💶',
+    icon: '-10€',
     title: '-10€ sur votre prochain lavage',
     points: 500,
     available: CURRENT_POINTS >= 500,
   },
   {
     id: '2',
-    icon: '🚿',
+    icon: 'EX',
     title: 'Lavage extérieur offert',
     points: 750,
     available: CURRENT_POINTS >= 750,
   },
   {
     id: '3',
-    icon: '✨',
+    icon: 'CO',
     title: 'Lavage complet gratuit',
     points: 1000,
     available: CURRENT_POINTS >= 1000,
   },
   {
     id: '4',
-    icon: '👑',
+    icon: 'PR',
     title: 'Lavage premium gratuit',
     points: 1500,
     available: CURRENT_POINTS >= 1500,
@@ -37,11 +37,11 @@ const REWARDS = [
 ];
 
 const POINTS_HISTORY = [
-  { id: '1', label: 'Lavage complet', date: '2 mars', points: +100, icon: '✅' },
-  { id: '2', label: 'Parrainage Karim', date: '14 fév.', points: +150, icon: '🎁' },
-  { id: '3', label: 'Lavage extérieur', date: '2 fév.', points: +50, icon: '✅' },
-  { id: '4', label: 'Récompense utilisée', date: '10 jan.', points: -500, icon: '💶' },
-  { id: '5', label: 'Lavage premium', date: '3 jan.', points: +200, icon: '✅' },
+  { id: '1', label: 'Lavage complet', date: '2 mars', points: +100, icon: 'LV' },
+  { id: '2', label: 'Parrainage Karim', date: '14 fév.', points: +150, icon: 'RF' },
+  { id: '3', label: 'Lavage extérieur', date: '2 fév.', points: +50, icon: 'LV' },
+  { id: '4', label: 'Récompense utilisée', date: '10 jan.', points: -500, icon: 'RC' },
+  { id: '5', label: 'Lavage premium', date: '3 jan.', points: +200, icon: 'LV' },
 ];
 
 export default function Rewards() {
@@ -79,7 +79,7 @@ export default function Rewards() {
 
           <View style={styles.nextRewardBadge}>
             <Text style={styles.nextRewardText}>
-              ✨ Plus que {MAX_POINTS - CURRENT_POINTS} pts pour un lavage offert
+              Plus que {MAX_POINTS - CURRENT_POINTS} pts pour un lavage offert
             </Text>
           </View>
         </View>
@@ -97,8 +97,8 @@ export default function Rewards() {
               ]}
             >
               <View style={styles.rewardLeft}>
-                <View style={[styles.rewardIcon, { backgroundColor: r.available ? '#e8f0ff' : colors.inputBg }]}>
-                  <Text style={{ fontSize: 22 }}>{r.icon}</Text>
+                <View style={[styles.rewardIcon, { backgroundColor: r.available ? '#EFF6FF' : colors.inputBg }]}>
+                  <Text style={[styles.rewardIconText, { color: r.available ? '#1558E7' : '#9CA3AF' }]}>{r.icon}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rewardTitle, { color: colors.text }]}>{r.title}</Text>
@@ -129,7 +129,7 @@ export default function Rewards() {
                 key={item.id}
                 style={[styles.historyRow, i > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]}
               >
-                <Text style={styles.historyIcon}>{item.icon}</Text>
+                <View style={styles.historyIconBox}><Text style={styles.historyIconText}>{item.icon}</Text></View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.historyLabel, { color: colors.text }]}>{item.label}</Text>
                   <Text style={[styles.historyDate, { color: colors.textSub }]}>{item.date}</Text>
@@ -152,17 +152,17 @@ export default function Rewards() {
           <Text style={[styles.sectionTitle, { color: colors.textSub }]}>COMMENT GAGNER DES POINTS</Text>
           <View style={[styles.howCard, { backgroundColor: colors.card }]}>
             {[
-              { icon: '🚿', label: 'Lavage extérieur', pts: '+50 pts' },
-              { icon: '✨', label: 'Lavage complet', pts: '+100 pts' },
-              { icon: '👑', label: 'Lavage premium', pts: '+200 pts' },
-              { icon: '🎁', label: 'Parrainage ami', pts: '+150 pts' },
-              { icon: '⭐', label: 'Laisser un avis', pts: '+20 pts' },
+              { icon: 'EX', label: 'Lavage extérieur', pts: '+50 pts' },
+              { icon: 'CO', label: 'Lavage complet', pts: '+100 pts' },
+              { icon: 'PR', label: 'Lavage premium', pts: '+200 pts' },
+              { icon: 'RF', label: 'Parrainage ami', pts: '+150 pts' },
+              { icon: 'NT', label: 'Laisser un avis', pts: '+20 pts' },
             ].map((item, i) => (
               <View
                 key={i}
                 style={[styles.howRow, i > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]}
               >
-                <Text style={{ fontSize: 20, width: 30 }}>{item.icon}</Text>
+                <View style={styles.howIconBox}><Text style={styles.howIconBoxText}>{item.icon}</Text></View>
                 <Text style={[styles.howLabel, { color: colors.text }]}>{item.label}</Text>
                 <Text style={styles.howPts}>{item.pts}</Text>
               </View>
@@ -219,6 +219,11 @@ const styles = StyleSheet.create({
   historyCard: { borderRadius: 16, overflow: 'hidden' },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
   historyIcon: { fontSize: 18 },
+  historyIconBox: { width: 32, height: 32, backgroundColor: '#F3F4F6', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  historyIconText: { fontSize: 9, fontWeight: '800', color: '#6B7280' },
+  rewardIconText: { fontSize: 11, fontWeight: '900' },
+  howIconBox: { width: 30, height: 30, backgroundColor: '#EFF6FF', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  howIconBoxText: { fontSize: 9, fontWeight: '800', color: '#1558E7' },
   historyLabel: { fontSize: 14, fontWeight: '600' },
   historyDate: { fontSize: 12, marginTop: 2 },
   historyPoints: { fontSize: 14, fontWeight: '800' },

@@ -17,14 +17,14 @@ interface Notif {
 }
 
 const INITIAL: Notif[] = [
-  { id: '1', category: 'booking', title: 'Réservation confirmée', body: 'Votre lavage complet est confirmé pour demain 10h00.', time: "Il y a 5 min", read: false, icon: '✅', action: '/tracking' },
-  { id: '2', category: 'washer', title: 'Karim est en route', body: 'Votre laveur arrive dans environ 8 minutes.', time: "Il y a 12 min", read: false, icon: '🚗', action: '/tracking' },
-  { id: '3', category: 'promo', title: 'Offre exclusive — 48h', body: 'Profitez de -15% sur tout le week-end avec le code WEEKEND15.', time: "Il y a 1h", read: false, icon: '🎁', action: '/booking' },
-  { id: '4', category: 'booking', title: 'Mission terminée', body: 'Votre Peugeot 308 a été lavée. Comment notez-vous Karim ?', time: "Hier, 14h32", read: true, icon: '⭐', action: '/history' },
-  { id: '5', category: 'system', title: 'Nouvelle fonctionnalité', body: 'Réservez maintenant en récurrence hebdomadaire et économisez 10%.', time: "Il y a 2 jours", read: true, icon: '✨' },
-  { id: '6', category: 'promo', title: 'Parrainez un ami', body: 'Invitez un ami et recevez tous les deux 10€ de crédit.', time: "Il y a 3 jours", read: true, icon: '🎯', action: '/referral' },
-  { id: '7', category: 'washer', title: 'Photos disponibles', body: 'Les photos avant/après de votre dernier lavage sont disponibles.', time: "Il y a 4 jours", read: true, icon: '📸', action: '/history' },
-  { id: '8', category: 'system', title: 'Rappel de lavage', body: 'Votre Peugeot 308 n\'a pas été lavée depuis 30 jours.', time: "Il y a 5 jours", read: true, icon: '🚿', action: '/booking' },
+  { id: '1', category: 'booking', title: 'Réservation confirmée', body: 'Votre lavage complet est confirmé pour demain 10h00.', time: "Il y a 5 min", read: false, icon: 'OK', action: '/tracking' },
+  { id: '2', category: 'washer', title: 'Karim est en route', body: 'Votre laveur arrive dans environ 8 minutes.', time: "Il y a 12 min", read: false, icon: 'EN', action: '/tracking' },
+  { id: '3', category: 'promo', title: 'Offre exclusive — 48h', body: 'Profitez de -15% sur tout le week-end avec le code WEEKEND15.', time: "Il y a 1h", read: false, icon: 'PR', action: '/booking' },
+  { id: '4', category: 'booking', title: 'Mission terminée', body: 'Votre Peugeot 308 a été lavée. Comment notez-vous Karim ?', time: "Hier, 14h32", read: true, icon: 'NT', action: '/history' },
+  { id: '5', category: 'system', title: 'Nouvelle fonctionnalité', body: 'Réservez maintenant en récurrence hebdomadaire et économisez 10%.', time: "Il y a 2 jours", read: true, icon: 'NV' },
+  { id: '6', category: 'promo', title: 'Parrainez un ami', body: 'Invitez un ami et recevez tous les deux 10€ de crédit.', time: "Il y a 3 jours", read: true, icon: 'RF', action: '/referral' },
+  { id: '7', category: 'washer', title: 'Photos disponibles', body: 'Les photos avant/après de votre dernier lavage sont disponibles.', time: "Il y a 4 jours", read: true, icon: 'PH', action: '/history' },
+  { id: '8', category: 'system', title: 'Rappel de lavage', body: 'Votre Peugeot 308 n\'a pas été lavée depuis 30 jours.', time: "Il y a 5 jours", read: true, icon: 'RP', action: '/booking' },
 ];
 
 const CATEGORIES: { key: Category; label: string }[] = [
@@ -36,10 +36,10 @@ const CATEGORIES: { key: Category; label: string }[] = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  booking: '#1a6bff',
-  washer: '#00c853',
-  promo: '#ff9800',
-  system: '#9c27b0',
+  booking: '#1558E7',
+  washer: '#16A34A',
+  promo: '#D97706',
+  system: '#7C3AED',
 };
 
 export default function Notifications() {
@@ -82,7 +82,7 @@ export default function Notifications() {
       activeOpacity={0.7}
     >
       <View style={[styles.iconBox, { backgroundColor: CATEGORY_COLORS[item.category] + '20' }]}>
-        <Text style={styles.iconText}>{item.icon}</Text>
+        <Text style={[styles.iconText, { color: CATEGORY_COLORS[item.category] }]}>{item.icon}</Text>
       </View>
       <View style={styles.notifContent}>
         <View style={styles.notifHeader}>
@@ -166,7 +166,9 @@ export default function Notifications() {
       {/* List */}
       {filtered.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🔔</Text>
+          <View style={[styles.emptyIconBox, { backgroundColor: '#F3F4F6' }]}>
+          <Text style={styles.emptyIconText}>NF</Text>
+        </View>
           <Text style={[styles.emptyTitle, { color: colors.text }]}>Aucune notification</Text>
           <Text style={[styles.emptySub, { color: colors.textSub }]}>
             Vous serez notifié de vos réservations et offres ici
@@ -258,7 +260,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexShrink: 0,
   },
-  iconText: { fontSize: 20 },
+  iconText: { fontSize: 11, fontWeight: '800' },
+  emptyIconBox: { width: 64, height: 64, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  emptyIconText: { fontSize: 18, fontWeight: '800', color: '#9CA3AF' },
   notifContent: { flex: 1 },
   notifHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 },
   notifTitle: { fontSize: 14, fontWeight: '500', color: '#0a0a0a', flex: 1, marginRight: 8 },

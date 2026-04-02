@@ -54,7 +54,7 @@ export default function Settings() {
       rows: [
         {
           id: 'dark_mode',
-          icon: isDark ? '🌙' : '☀️',
+          icon: isDark ? 'DK' : 'LT',
           label: isDark ? 'Mode sombre' : 'Mode clair',
           sublabel: 'Changer le thème de l\'application',
           type: 'toggle',
@@ -68,7 +68,7 @@ export default function Settings() {
       rows: [
         {
           id: 'notif_bookings',
-          icon: '📋',
+          icon: 'RV',
           label: 'Réservations',
           sublabel: 'Confirmations, annulations, rappels',
           type: 'toggle',
@@ -77,7 +77,7 @@ export default function Settings() {
         },
         {
           id: 'notif_washer',
-          icon: '🚗',
+          icon: 'LV',
           label: 'Laveur en route',
           sublabel: 'Quand votre laveur approche',
           type: 'toggle',
@@ -86,7 +86,7 @@ export default function Settings() {
         },
         {
           id: 'notif_promos',
-          icon: '🎁',
+          icon: 'PR',
           label: 'Promotions',
           sublabel: 'Offres exclusives et codes promo',
           type: 'toggle',
@@ -95,7 +95,7 @@ export default function Settings() {
         },
         {
           id: 'notif_reminders',
-          icon: '🔔',
+          icon: 'RP',
           label: 'Rappels de lavage',
           sublabel: 'Quand votre voiture n\'a pas été lavée',
           type: 'toggle',
@@ -109,7 +109,7 @@ export default function Settings() {
       rows: [
         {
           id: 'notif_email',
-          icon: '📧',
+          icon: 'EM',
           label: 'Emails récapitulatifs',
           sublabel: 'Factures et résumés de commandes',
           type: 'toggle',
@@ -123,7 +123,7 @@ export default function Settings() {
       rows: [
         {
           id: 'location_bg',
-          icon: '📍',
+          icon: 'GP',
           label: 'Localisation en arrière-plan',
           sublabel: 'Pour le suivi de votre laveur',
           type: 'toggle',
@@ -132,7 +132,7 @@ export default function Settings() {
         },
         {
           id: 'analytics',
-          icon: '📊',
+          icon: 'AN',
           label: 'Données analytiques',
           sublabel: 'Améliorer l\'expérience de l\'app',
           type: 'toggle',
@@ -141,7 +141,7 @@ export default function Settings() {
         },
         {
           id: 'legal',
-          icon: '📄',
+          icon: 'CG',
           label: 'CGU & Politique de confidentialité',
           type: 'link',
           onPress: () => router.push('/legal' as any),
@@ -153,7 +153,7 @@ export default function Settings() {
       rows: [
         {
           id: 'clear_cache',
-          icon: '🗑️',
+          icon: 'CH',
           label: 'Vider le cache local',
           sublabel: 'Libère de l\'espace sur votre appareil',
           type: 'link',
@@ -161,7 +161,7 @@ export default function Settings() {
         },
         {
           id: 'export_data',
-          icon: '📤',
+          icon: 'EX',
           label: 'Exporter mes données',
           sublabel: 'Recevoir une copie de vos données',
           type: 'link',
@@ -174,21 +174,21 @@ export default function Settings() {
       rows: [
         {
           id: 'version',
-          icon: 'ℹ️',
+          icon: 'VR',
           label: 'Version de l\'application',
           sublabel: 'WashNow 1.0.0 (build 42)',
           type: 'link',
         },
         {
           id: 'rate',
-          icon: '⭐',
+          icon: 'NT',
           label: 'Noter l\'application',
           type: 'link',
           onPress: () => Alert.alert('Merci !', 'Vous allez être redirigé vers le store.'),
         },
         {
           id: 'support',
-          icon: '💬',
+          icon: 'SP',
           label: 'Support & Aide',
           type: 'link',
           onPress: () => router.push('/support' as any),
@@ -200,7 +200,7 @@ export default function Settings() {
       rows: [
         {
           id: 'delete_account',
-          icon: '🗑️',
+          icon: 'SU',
           label: 'Supprimer mon compte',
           type: 'destructive',
           onPress: () => router.push('/delete-account' as any),
@@ -232,7 +232,7 @@ export default function Settings() {
                   ]}
                 >
                   <View style={[styles.rowIcon, { backgroundColor: colors.cardAlt ?? '#f5f5f5' }]}>
-                    <Text style={{ fontSize: 18 }}>{row.icon}</Text>
+                    <Text style={styles.rowIconText}>{row.icon}</Text>
                   </View>
                   <View style={styles.rowContent}>
                     <Text style={[
@@ -316,4 +316,5 @@ const styles = StyleSheet.create({
   rowSub: { fontSize: 12, marginTop: 2, color: '#999' },
   rowArrowBtn: { padding: 4 },
   rowArrow: { fontSize: 20, color: '#ccc' },
+  rowIconText: { fontSize: 10, fontWeight: '800', color: '#6B7280' },
 });

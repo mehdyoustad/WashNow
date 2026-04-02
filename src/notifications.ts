@@ -36,9 +36,12 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   try {
+    // getExpoPushTokenAsync n'est pas disponible dans Expo Go SDK 53+
+    // Fonctionne uniquement avec un development build ou en production
     const token = (await Notifications.getExpoPushTokenAsync()).data;
     return token;
   } catch {
+    // Silencieux en dev / Expo Go — pas bloquant
     return null;
   }
 }

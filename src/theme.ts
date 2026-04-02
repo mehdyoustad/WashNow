@@ -1,48 +1,51 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createElement } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 const light = {
-  bg: '#f5f5f5',
-  card: 'white',
-  cardAlt: '#f5f5f5',
-  header: '#0a0a0a',
-  text: '#0a0a0a',
-  textSub: '#999',
-  textMuted: 'rgba(0,0,0,0.4)',
-  border: '#e8e8e8',
-  inputBg: '#f5f5f5',
-  navBg: 'white',
-  navBorder: '#e8e8e8',
+  bg: '#F7F8FA',
+  card: '#FFFFFF',
+  cardAlt: '#F3F4F6',
+  header: '#0D0D0D',
+  text: '#0D0D0D',
+  textSub: '#6B7280',
+  textMuted: '#9CA3AF',
+  border: '#E5E7EB',
+  inputBg: '#F3F4F6',
+  navBg: '#FFFFFF',
+  navBorder: '#E5E7EB',
+  primary: '#1558E7',
+  success: '#16A34A',
+  danger: '#DC2626',
 };
 
 const dark = {
   bg: '#111111',
-  card: '#1e1e1e',
-  cardAlt: '#2a2a2a',
+  card: '#1C1C1E',
+  cardAlt: '#2C2C2E',
   header: '#000000',
-  text: '#f0f0f0',
-  textSub: 'rgba(255,255,255,0.45)',
-  textMuted: 'rgba(255,255,255,0.25)',
-  border: '#333333',
-  inputBg: '#2a2a2a',
-  navBg: '#1a1a1a',
-  navBorder: '#2a2a2a',
+  text: '#F2F2F7',
+  textSub: '#8E8E93',
+  textMuted: '#6C6C70',
+  border: '#38383A',
+  inputBg: '#2C2C2E',
+  navBg: '#1C1C1E',
+  navBorder: '#38383A',
+  primary: '#3B7FFF',
+  success: '#30D158',
+  danger: '#FF453A',
 };
 
 export type ThemeColors = typeof light;
 
 const THEME_KEY = '@washnow_theme';
 
-// ─── Context ─────────────────────────────────────────────────────────────────
-
 interface ThemeCtx {
   colors: ThemeColors;
   isDark: boolean;
   toggleTheme: () => void;
 }
-
-import { createElement } from 'react';
 
 const ThemeContext = createContext<ThemeCtx>({
   colors: light,

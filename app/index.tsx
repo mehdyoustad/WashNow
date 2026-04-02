@@ -22,7 +22,7 @@ export default function Splash() {
       <View style={styles.circle} />
       <View style={styles.circleSmall} />
       <View style={styles.logo}>
-        <Text style={styles.logoIcon}>🚿</Text>
+        <Text style={styles.logoW}>W</Text>
       </View>
       <Text style={styles.title}>WashNow</Text>
       <Text style={styles.subtitle}>Votre voiture lavée à domicile</Text>
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   circle: { position: 'absolute', width: 400, height: 400, borderRadius: 200, backgroundColor: 'rgba(26,107,255,0.08)', top: -100, right: -100 },
   circleSmall: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(26,107,255,0.05)', bottom: 50, left: -50 },
   logo: { width: 90, height: 90, backgroundColor: '#1a6bff', borderRadius: 26, justifyContent: 'center', alignItems: 'center', marginBottom: 20, shadowColor: '#1a6bff', shadowOpacity: 0.4, shadowRadius: 20, elevation: 10 },
-  logoIcon: { fontSize: 44 },
+  logoW: { fontSize: 44, fontWeight: '900', color: '#FFFFFF', letterSpacing: -2 },
   title: { color: 'white', fontSize: 36, fontWeight: '800', letterSpacing: -1 },
   subtitle: { color: 'rgba(255,255,255,0.4)', fontSize: 15, marginTop: 8 },
   dots: { flexDirection: 'row', gap: 6, marginTop: 40 },

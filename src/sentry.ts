@@ -2,9 +2,12 @@ import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 
 export function initSentry() {
+  const dsn = 'https://your-sentry-dsn@sentry.io/your-project-id';
+  // Ne pas initialiser si le DSN n'est pas configuré
+  if (dsn.includes('your-sentry-dsn')) return;
   Sentry.init({
-    dsn: 'https://your-sentry-dsn@sentry.io/your-project-id', // À remplacer par ton DSN Sentry
-    enabled: !__DEV__, // Désactivé en développement
+    dsn,
+    enabled: !__DEV__,
     environment: __DEV__ ? 'development' : 'production',
     release: Constants.expoConfig?.version ?? '1.0.0',
     tracesSampleRate: 0.2, // 20% des transactions tracées

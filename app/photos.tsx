@@ -103,7 +103,7 @@ export default function Photos() {
             <Image source={{ uri }} style={styles.photo} resizeMode="cover" />
             {!isViewMode && (
               <TouchableOpacity style={styles.retakeBtn} onPress={() => pickAndUpload(type)}>
-                <Text style={styles.retakeBtnText}>🔄 Reprendre</Text>
+                <Text style={styles.retakeBtnText}>Reprendre</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -114,15 +114,15 @@ export default function Photos() {
             disabled={isViewMode || isLoading}
           >
             {isLoading ? (
-              <Text style={styles.emptyIcon}>⏳</Text>
+              <View style={styles.emptyIconBox}><Text style={styles.emptyIconText}>...</Text></View>
             ) : isViewMode ? (
               <>
-                <Text style={styles.emptyIcon}>📷</Text>
+                <View style={styles.emptyIconBox}><Text style={styles.emptyIconText}>PH</Text></View>
                 <Text style={[styles.emptyText, { color: colors.textSub }]}>Pas encore de photo</Text>
               </>
             ) : (
               <>
-                <Text style={styles.emptyIcon}>📷</Text>
+                <View style={styles.emptyIconBox}><Text style={styles.emptyIconText}>PH</Text></View>
                 <Text style={[styles.emptyText, { color: colors.textSub }]}>Prendre une photo</Text>
                 <Text style={[styles.emptyHint, { color: colors.textMuted }]}>Appuie pour ouvrir la caméra</Text>
               </>
@@ -145,7 +145,7 @@ export default function Photos() {
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.infoBox}>
-          <Text style={styles.infoIcon}>{isViewMode ? '🖼️' : '📸'}</Text>
+          <View style={styles.infoIconBox}><Text style={styles.infoIconText}>{isViewMode ? 'GL' : 'PH'}</Text></View>
           <Text style={[styles.infoText, { color: colors.text }]}>
             {isViewMode
               ? 'Photos prises lors de cette prestation'
@@ -160,7 +160,7 @@ export default function Photos() {
 
         {!isViewMode && photos.before && photos.after && (
           <TouchableOpacity style={styles.doneBtn} onPress={() => router.back()}>
-            <Text style={styles.doneBtnText}>✅ Photos enregistrées</Text>
+            <Text style={styles.doneBtnText}>Photos enregistrées</Text>
           </TouchableOpacity>
         )}
 
@@ -187,6 +187,8 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   infoBox: { flexDirection: 'row', alignItems: 'center', gap: 12, margin: 20, padding: 16, backgroundColor: '#e8f0ff', borderRadius: 14 },
   infoIcon: { fontSize: 24 },
+  infoIconBox: { width: 36, height: 36, backgroundColor: '#EFF6FF', borderRadius: 9, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  infoIconText: { fontSize: 9, fontWeight: '800', color: '#1558E7' },
   infoText: { flex: 1, fontSize: 13, lineHeight: 20 },
   photosGrid: { flexDirection: 'row', gap: 14, paddingHorizontal: 20 },
   slotWrap: { flex: 1 },
@@ -203,6 +205,8 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', gap: 6,
   },
   emptyIcon: { fontSize: 28 },
+  emptyIconBox: { width: 56, height: 56, backgroundColor: '#F3F4F6', borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  emptyIconText: { fontSize: 12, fontWeight: '800', color: '#9CA3AF' },
   emptyText: { fontSize: 13, fontWeight: '600' },
   emptyHint: { fontSize: 11 },
   doneBtn: { backgroundColor: '#00c853', borderRadius: 50, padding: 18, alignItems: 'center', margin: 20 },

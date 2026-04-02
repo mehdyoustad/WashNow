@@ -36,14 +36,14 @@ export default function Chat() {
       id: '1',
       booking_id: bookingId,
       sender_id: 'washer-001',
-      content: 'Bonjour ! Je suis en route, j\'arrive dans environ 10 minutes 🚗',
+      content: 'Bonjour ! Je suis en route, j\'arrive dans environ 10 minutes.',
       created_at: new Date(Date.now() - 5 * 60000).toISOString(),
     },
     {
       id: '2',
       booking_id: bookingId,
       sender_id: MOCK_USER_ID,
-      content: 'Super, merci ! Je vous attends 👍',
+      content: 'Super, merci ! Je vous attends.',
       created_at: new Date(Date.now() - 4 * 60000).toISOString(),
     },
     {
@@ -151,7 +151,7 @@ export default function Chat() {
           <View style={styles.washerAvatar}><Text style={{ color: 'white', fontWeight: '700' }}>K</Text></View>
           <View>
             <Text style={styles.headerName}>Karim B.</Text>
-            <Text style={styles.headerStatus}>🟢 En ligne</Text>
+            <Text style={styles.headerStatus}>● En ligne</Text>
           </View>
         </View>
         <View style={{ width: 40 }} />

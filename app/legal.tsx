@@ -104,7 +104,7 @@ export default function Legal() {
       </View>
 
       <View style={styles.tabBar}>
-        {([['cgu', '📋 CGU'], ['privacy', '🔒 Confidentialité']] as [Tab, string][]).map(([key, label]) => (
+        {([['cgu', 'CGU'], ['privacy', 'Confidentialité']] as [Tab, string][]).map(([key, label]) => (
           <TouchableOpacity
             key={key}
             style={[styles.tab, tab === key && styles.tabActive]}

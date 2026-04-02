@@ -140,7 +140,7 @@ export default function EditProfile() {
               </View>
             )}
             <View style={styles.avatarEditBadge}>
-              <Text style={{ fontSize: 14 }}>📷</Text>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>ED</Text>
             </View>
           </TouchableOpacity>
           <Text style={styles.avatarHint}>Appuie pour changer ta photo</Text>
@@ -151,7 +151,7 @@ export default function EditProfile() {
           <Text style={styles.sectionLabel}>INFORMATIONS PERSONNELLES</Text>
           <View style={styles.card}>
             <View style={styles.fieldRow}>
-              <Text style={styles.fieldIcon}>👤</Text>
+              <Text style={styles.fieldIcon}>ID</Text>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>Prénom</Text>
                 <TextInput
@@ -165,7 +165,7 @@ export default function EditProfile() {
             </View>
 
             <View style={[styles.fieldRow, styles.fieldBorder]}>
-              <Text style={styles.fieldIcon}>✉️</Text>
+              <Text style={styles.fieldIcon}>EM</Text>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>Email</Text>
                 <TextInput
@@ -181,7 +181,7 @@ export default function EditProfile() {
             </View>
 
             <View style={[styles.fieldRow, styles.fieldBorder]}>
-              <Text style={styles.fieldIcon}>📱</Text>
+              <Text style={styles.fieldIcon}>TL</Text>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>Téléphone</Text>
                 <TextInput

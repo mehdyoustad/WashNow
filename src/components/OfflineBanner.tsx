@@ -30,7 +30,7 @@ export default function OfflineBanner() {
       isBack ? styles.bannerBack : styles.bannerOffline,
       { transform: [{ translateY }], opacity },
     ]}>
-      <Text style={styles.icon}>{isBack ? '✅' : '📵'}</Text>
+      <Text style={styles.icon}>{isBack ? '✓' : '—'}</Text>
       <Text style={styles.text}>
         {isBack ? 'Connexion rétablie' : 'Pas de connexion internet'}
       </Text>

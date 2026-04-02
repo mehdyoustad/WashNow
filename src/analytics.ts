@@ -21,6 +21,8 @@ export async function track(
   event: AnalyticsEvent,
   properties?: Record<string, unknown>
 ) {
+  // Pas d'analytics en développement pour éviter les erreurs réseau parasites
+  if (__DEV__) return;
   try {
     const { data: { user } } = await supabase.auth.getUser();
     await supabase.from('analytics').insert({
@@ -28,10 +30,9 @@ export async function track(
       user_id: user?.id ?? null,
       properties: properties ?? {},
       created_at: new Date().toISOString(),
-      platform: 'ios', // À remplacer dynamiquement si besoin
+      platform: 'ios',
     });
   } catch {
     // Les erreurs analytics ne doivent jamais crasher l'app
-    if (__DEV__) console.warn('[Analytics] Failed to track:', event);
   }
 }
