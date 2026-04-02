@@ -21,8 +21,6 @@ type Message = {
   created_at: string;
 };
 
-// Mock pour la démo (en prod : récupérer depuis supabase.auth.getUser())
-const MOCK_USER_ID = 'client-001';
 const MOCK_BOOKING_ID = 'booking-001';
 
 export default function Chat() {
@@ -31,34 +29,26 @@ export default function Chat() {
   const params = useLocalSearchParams<{ bookingId?: string }>();
   const bookingId = params.bookingId ?? MOCK_BOOKING_ID;
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      booking_id: bookingId,
-      sender_id: 'washer-001',
-      content: 'Bonjour ! Je suis en route, j\'arrive dans environ 10 minutes.',
-      created_at: new Date(Date.now() - 5 * 60000).toISOString(),
-    },
-    {
-      id: '2',
-      booking_id: bookingId,
-      sender_id: MOCK_USER_ID,
-      content: 'Super, merci ! Je vous attends.',
-      created_at: new Date(Date.now() - 4 * 60000).toISOString(),
-    },
-    {
-      id: '3',
-      booking_id: bookingId,
-      sender_id: 'washer-001',
-      content: 'J\'aurai besoin d\'un accès à un point d\'eau si possible.',
-      created_at: new Date(Date.now() - 2 * 60000).toISOString(),
-    },
-  ]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
+    // Récupérer l'utilisateur connecté + charger les messages existants
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+
+    supabase
+      .from('messages')
+      .select('*')
+      .eq('booking_id', bookingId)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (data) setMessages(data as Message[]);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
+      });
+
     // Supabase Realtime — écoute les nouveaux messages en temps réel
     const channel = supabase
       .channel(`chat:${bookingId}`)
@@ -93,7 +83,7 @@ export default function Chat() {
     const optimistic: Message = {
       id: `opt-${Date.now()}`,
       booking_id: bookingId,
-      sender_id: MOCK_USER_ID,
+      sender_id: userId ?? '',
       content,
       created_at: new Date().toISOString(),
     };
@@ -101,10 +91,9 @@ export default function Chat() {
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       await supabase.from('messages').insert({
         booking_id: bookingId,
-        sender_id: user?.id ?? MOCK_USER_ID,
+        sender_id: userId,
         content,
       });
     } catch {
@@ -120,7 +109,7 @@ export default function Chat() {
   };
 
   const renderMessage = ({ item }: { item: Message }) => {
-    const isMe = item.sender_id === MOCK_USER_ID;
+    const isMe = userId !== null && item.sender_id === userId;
     return (
       <View style={[styles.msgRow, isMe ? styles.msgRowMe : styles.msgRowThem]}>
         {!isMe && (

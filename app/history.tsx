@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTheme } from '../src/theme';
 import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { Cache, CACHE_KEYS } from '../src/cache';
+import { supabase } from '../src/supabase';
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   ScrollView,
@@ -42,76 +44,26 @@ type Booking = {
   recurrenceType?: 'weekly' | 'biweekly' | 'monthly';
 };
 
-const MOCK_BOOKINGS: Booking[] = [
-  {
-    id: '-1',
-    service: 'Lavage complet',
-    date: 'Sam. 15 mars 2025, 10h00',
-    address: '12 rue de Paris, Drancy',
-    price: '35€',
-    status: 'confirmé',
-    washer: 'Karim B.',
-    washerInitial: 'K',
-    rating: null,
-    recurring: true,
-    recurrenceType: 'weekly',
-  },
-  {
-    id: '0',
-    service: 'Lavage premium',
-    date: 'Sam. 8 mars 2025, 11h00',
-    address: '12 rue de Paris, Drancy',
-    price: '59€',
-    status: 'confirmé',
-    washer: 'Karim B.',
-    washerInitial: 'K',
-    rating: null,
-  },
-  {
-    id: '1',
-    service: 'Lavage complet',
-    date: 'Dim. 2 mars 2025, 10h00',
-    address: '12 rue de Paris, Drancy',
-    price: '39€',
-    status: 'terminé',
-    washer: 'Karim B.',
-    washerInitial: 'K',
-    rating: null,
-  },
-  {
-    id: '2',
-    service: 'Lavage extérieur',
-    date: 'Mar. 18 fév. 2025, 14h00',
-    address: '12 rue de Paris, Drancy',
-    price: '19€',
-    status: 'terminé',
-    washer: 'Youssef M.',
-    washerInitial: 'Y',
-    rating: 5,
-  },
-  {
-    id: '3',
-    service: 'Lavage premium',
-    date: 'Sam. 8 fév. 2025, 09h30',
-    address: '12 rue de Paris, Drancy',
-    price: '59€',
-    status: 'annulé',
-    washer: 'Thomas L.',
-    washerInitial: 'T',
-    rating: null,
-  },
-  {
-    id: '4',
-    service: 'Lavage complet',
-    date: 'Lun. 20 jan. 2025, 11h00',
-    address: '12 rue de Paris, Drancy',
-    price: '39€',
-    status: 'terminé',
-    washer: 'Karim B.',
-    washerInitial: 'K',
-    rating: 4,
-  },
-];
+const STATUS_MAP: Record<string, Booking['status']> = {
+  completed: 'terminé',
+  cancelled: 'annulé',
+  in_progress: 'en cours',
+  confirmed: 'confirmé',
+  pending: 'en attente',
+  terminé: 'terminé',
+  annulé: 'annulé',
+  'en cours': 'en cours',
+  confirmé: 'confirmé',
+  'en attente': 'en attente',
+};
+
+const formatDate = (iso: string) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const days = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
+  const months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sep.', 'oct.', 'nov.', 'déc.'];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}h${String(d.getMinutes()).padStart(2, '0')}`;
+};
 
 const STATUS_COLORS: Record<Booking['status'], { bg: string; text: string; label: string }> = {
   terminé: { bg: '#e8faf0', text: '#00c853', label: 'Terminé' },
@@ -125,7 +77,8 @@ export default function History() {
   const router = useRouter();
   const { colors } = useTheme();
   const { isConnected } = useNetworkStatus();
-  const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [fromCache, setFromCache] = useState(false);
   const [search, setSearch] = useState('');
@@ -136,20 +89,57 @@ export default function History() {
   });
   const [hoverRating, setHoverRating] = useState(0);
 
-  // Cache : sauvegarder + charger
   useEffect(() => {
-    Cache.set(CACHE_KEYS.HISTORY, MOCK_BOOKINGS);
-  }, []);
-
-  useEffect(() => {
-    if (!isConnected) {
-      Cache.get<Booking[]>(CACHE_KEYS.HISTORY).then(cached => {
-        if (cached) { setBookings(cached); setFromCache(true); }
-      });
-    } else {
-      setFromCache(false);
-    }
+    fetchBookings();
   }, [isConnected]);
+
+  const fetchBookings = async () => {
+    if (!isConnected) {
+      const cached = await Cache.get<Booking[]>(CACHE_KEYS.HISTORY);
+      if (cached) { setBookings(cached); setFromCache(true); }
+      setLoading(false);
+      return;
+    }
+    setFromCache(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+
+      const { data } = await supabase
+        .from('bookings')
+        .select(`
+          id, address, status, price, time_slot, scheduled_at, recurring, recurrence_type,
+          services ( name ),
+          profiles!bookings_washer_id_fkey ( full_name ),
+          ratings ( stars )
+        `)
+        .eq('user_id', user.id)
+        .order('scheduled_at', { ascending: false });
+
+      if (data) {
+        const mapped: Booking[] = data.map((b: any) => ({
+          id: b.id,
+          service: b.services?.name ?? 'Lavage',
+          date: formatDate(b.scheduled_at ?? b.time_slot),
+          address: b.address ?? '',
+          price: `${b.price ?? 0}€`,
+          status: STATUS_MAP[b.status] ?? 'en attente',
+          washer: b.profiles?.full_name ?? 'Laveur assigné',
+          washerInitial: (b.profiles?.full_name ?? 'L')[0].toUpperCase(),
+          rating: b.ratings?.[0]?.stars ?? null,
+          recurring: b.recurring,
+          recurrenceType: b.recurrence_type,
+        }));
+        setBookings(mapped);
+        await Cache.set(CACHE_KEYS.HISTORY, mapped);
+      }
+    } catch {
+      const cached = await Cache.get<Booking[]>(CACHE_KEYS.HISTORY);
+      if (cached) { setBookings(cached); setFromCache(true); }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filtrage + pagination
   const filteredBookings = useMemo(() => {
@@ -194,7 +184,7 @@ export default function History() {
             setBookings(prev =>
               prev.map(b => b.id === booking.id ? { ...b, status: 'annulé' } : b)
             );
-            // TODO: await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', booking.id)
+            await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', booking.id);
             Alert.alert(
               'Réservation annulée',
               `Remboursement de ${booking.price} en cours. Vous recevrez un email de confirmation.`
@@ -210,7 +200,13 @@ export default function History() {
       prev.map((b) => (b.id === ratingModal.bookingId ? { ...b, rating: stars } : b))
     );
     setRatingModal({ visible: false, bookingId: null });
-    // TODO: await supabase.from('ratings').upsert({ booking_id: ratingModal.bookingId, stars })
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.from('ratings').upsert({
+      booking_id: ratingModal.bookingId,
+      user_id: user?.id,
+      stars,
+      created_at: new Date().toISOString(),
+    });
   }, [ratingModal.bookingId]);
 
   const currentBooking = bookings.find((b) => b.id === ratingModal.bookingId);
@@ -311,6 +307,12 @@ export default function History() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {loading && (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      )}
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={{ height: 8 }} />
@@ -559,6 +561,7 @@ const styles = StyleSheet.create({
   submitBtnText: { color: 'white', fontSize: 16, fontWeight: '700' },
   cacheBanner: { backgroundColor: '#fff8e6', borderRadius: 10, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: '#ffe0a0' },
   cacheBannerText: { fontSize: 12, color: '#cc8800', textAlign: 'center', fontWeight: '600' },
+  loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 },
   loadMoreBtn: { margin: 16, padding: 14, borderRadius: 12, borderWidth: 1.5, borderColor: '#e0e0e0', alignItems: 'center' },
   loadMoreText: { fontSize: 14, fontWeight: '600', color: '#1a6bff' },
   searchWrap: { paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1 },

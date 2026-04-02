@@ -10,12 +10,23 @@ import {
   View,
 } from 'react-native';
 import TabBar from '../src/components/TabBar';
+import { supabase } from '../src/supabase';
 import { useTheme } from '../src/theme';
 
 const OWM_API_KEY = 'REMPLACE_PAR_TA_CLE_OWM';
 
 type Weather = { temp: number; description: string; isRainy: boolean };
 const RAINY_CODES = new Set(['09', '10', '11']);
+
+type ActiveBooking = {
+  hasActive: boolean;
+  service: string;
+  washerName: string;
+  washerRating: string;
+  eta: string;
+  status: string;
+  bookingId?: string;
+};
 
 const SERVICES = [
   { id: 'ext', abbr: 'EX', name: 'Extérieur', price: 'dès 24€', desc: 'Carrosserie, vitres, jantes' },
@@ -30,13 +41,11 @@ const SOCIAL_STATS = [
   { value: '< 2h', label: 'délai moyen' },
 ];
 
-const ACTIVE_BOOKING = {
-  hasActive: true,
-  service: 'Lavage complet',
-  washerName: 'Thomas D.',
-  washerRating: '4.9',
-  eta: '45 min',
-  status: 'En route',
+const STATUS_LABEL: Record<string, string> = {
+  in_progress: 'En cours',
+  confirmed: 'Confirmé',
+  pending: 'En attente',
+  en_route: 'En route',
 };
 
 export default function Home() {
@@ -45,9 +54,10 @@ export default function Home() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(16)).current;
   const [weather, setWeather] = useState<Weather | null>(null);
-
-  const lastWashDays = 32;
-  const carName = 'Peugeot 308';
+  const [activeBooking, setActiveBooking] = useState<ActiveBooking>({ hasActive: false, service: '', washerName: '', washerRating: '', eta: '', status: '' });
+  const [userName, setUserName] = useState('');
+  const [lastWashDays, setLastWashDays] = useState<number | null>(null);
+  const [carName, setCarName] = useState('votre véhicule');
 
   useEffect(() => {
     Animated.parallel([
@@ -55,7 +65,76 @@ export default function Home() {
       Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
     ]).start();
     fetchWeather();
+    fetchUserData();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Profil + véhicule par défaut
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+      if (profile?.full_name) setUserName(profile.full_name.split(' ')[0]);
+
+      const { data: vehicle } = await supabase
+        .from('vehicles')
+        .select('brand, model')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
+        .single();
+      if (vehicle) setCarName(`${vehicle.brand} ${vehicle.model}`);
+
+      // Réservation active (en cours ou confirmée)
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select(`
+          id, status,
+          services ( name ),
+          profiles!bookings_washer_id_fkey ( full_name ),
+          ratings ( stars )
+        `)
+        .eq('user_id', user.id)
+        .in('status', ['confirmed', 'in_progress', 'en_route'])
+        .order('scheduled_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (booking) {
+        const washerRating = booking.ratings?.[0]?.stars ?? '—';
+        setActiveBooking({
+          hasActive: true,
+          service: booking.services?.name ?? 'Lavage',
+          washerName: booking.profiles?.full_name ?? 'Laveur assigné',
+          washerRating: String(washerRating),
+          eta: '—',
+          status: STATUS_LABEL[booking.status] ?? booking.status,
+          bookingId: booking.id,
+        });
+      }
+
+      // Dernier lavage terminé
+      const { data: lastBooking } = await supabase
+        .from('bookings')
+        .select('scheduled_at')
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .order('scheduled_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (lastBooking?.scheduled_at) {
+        const days = Math.floor((Date.now() - new Date(lastBooking.scheduled_at).getTime()) / (1000 * 60 * 60 * 24));
+        setLastWashDays(days);
+      }
+    } catch {
+      // silently ignore — données non critiques
+    }
+  };
 
   const fetchWeather = async () => {
     if (!OWM_API_KEY || OWM_API_KEY === 'REMPLACE_PAR_TA_CLE_OWM') return;
@@ -85,7 +164,7 @@ export default function Home() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.greeting}>Bonjour, Mehdy</Text>
+            <Text style={styles.greeting}>Bonjour{userName ? `, ${userName}` : ''}</Text>
             <Text style={styles.location}>Drancy, Île-de-France</Text>
           </View>
           <TouchableOpacity
@@ -113,7 +192,7 @@ export default function Home() {
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         {/* Réservation active */}
-        {ACTIVE_BOOKING.hasActive && (
+        {activeBooking.hasActive && (
           <TouchableOpacity
             style={[styles.activeCard, { borderColor: colors.primary }]}
             onPress={() => router.push('/tracking')}
@@ -122,19 +201,19 @@ export default function Home() {
             <View style={styles.activeLeft}>
               <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />
               <View>
-                <Text style={styles.activeService}>{ACTIVE_BOOKING.service}</Text>
+                <Text style={styles.activeService}>{activeBooking.service}</Text>
                 <Text style={styles.activeWasher}>
-                  {ACTIVE_BOOKING.washerName} · {ACTIVE_BOOKING.washerRating} / 5
+                  {activeBooking.washerName} · {activeBooking.washerRating} / 5
                 </Text>
               </View>
             </View>
             <View style={styles.activeRight}>
               <View style={[styles.activeStatusBadge, { backgroundColor: colors.primary + '18' }]}>
                 <Text style={[styles.activeStatusText, { color: colors.primary }]}>
-                  {ACTIVE_BOOKING.status}
+                  {activeBooking.status}
                 </Text>
               </View>
-              <Text style={styles.activeEta}>ETA {ACTIVE_BOOKING.eta}</Text>
+              {activeBooking.eta !== '—' && <Text style={styles.activeEta}>ETA {activeBooking.eta}</Text>}
               <Text style={[styles.activeArrow, { color: colors.primary }]}>→</Text>
             </View>
           </TouchableOpacity>
@@ -167,7 +246,7 @@ export default function Home() {
         )}
 
         {/* Rappel */}
-        {lastWashDays >= 30 && (
+        {lastWashDays !== null && lastWashDays >= 30 && (
           <TouchableOpacity
             style={[styles.reminderCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push('/booking')}

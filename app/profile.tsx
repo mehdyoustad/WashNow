@@ -72,7 +72,6 @@ export default function Profile() {
       items: [
         { label: 'Notifications', onPress: () => router.push('/notifications' as any) },
         { label: 'Paramètres', onPress: () => router.push('/settings' as any) },
-        { label: "Widget écran d'accueil", onPress: () => router.push('/widget-preview' as any) },
         { label: 'Aide & Support', onPress: () => router.push('/support' as any) },
       ],
     },
